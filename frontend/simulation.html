@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRI Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            
+        }
+        body {
+            background-color: #f0f0f0;
+            padding: 20px;
+            background-image: url(./picture/Background\ photo.jpg);
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .image-container {
+            display: flex;
+            height: 350px;
+            background-color: #000;
+            position: relative;
+        }
+        .mri-image {
+            flex: 1;
+            position: relative;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+        .mri-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-info {
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            padding: 5px;
+        }
+        .image-info.top-left {
+            top: 5px;
+            left: 5px;
+        }
+        .image-info.top-right {
+            top: 5px;
+            right: 5px;
+        }
+        .image-info.bottom-left {
+            bottom: 5px;
+            left: 5px;
+        }
+        .image-info.bottom-right {
+            bottom: 5px;
+            right: 5px;
+        }
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            border-radius: 50%;
+        }
+        .nav-arrow.left {
+            left: 10px;
+        }
+        .nav-arrow.right {
+            right: 10px;
+        }
+        .control-panel {
+            display: flex;
+            padding: 20px;
+        }
+        .pulse-sequences {
+            width: 30%;
+            border-right: 1px solid #ddd;
+            padding-right: 20px;
+        }
+        .parameters {
+            width: 70%;
+            padding-left: 20px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        .scan-dropdown {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+        }
+        .add-sequence-btn {
+            padding: 5px 15px;
+            background-color: #fff;
+            color: #0078d7;
+            border: 1px solid #0078d7;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .sequence-list {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .sequence-item {
+            display: flex;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .sequence-item:hover {
+            background-color: #f5f5f5;
+        }
+        .sequence-item.active {
+            background-color: #e6f2ff;
+        }
+        .sequence-number {
+            width: 40px;
+            color: #666;
+        }
+        .sequence-name {
+            flex: 1;
+            font-weight: bold;
+        }
+        .sequence-time {
+            color: #666;
+            margin-right: 10px;
+        }
+        .sequence-count {
+            background-color: #eee;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #666;
+        }
+        .sequence-status {
+            color: #666;
+            font-style: italic;
+        }
+        .parameter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .parameter-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .parameter-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-cancel {
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .btn-save {
+            background-color: #0078d7;
+            color: white;
+            border: 1px solid #0078d7;
+        }
+        .btn-run {
+            background-color: #28a745;
+            color: white;
+            border: 1px solid #28a745;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid #0078d7;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .form-group-half {
+            width: 48%;
+            margin-right: 2%;
+            margin-bottom: 15px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .logout-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 15px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        .checkbox-container input {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Image Display Area -->
+        <div class="image-container">
+            <!-- Image 1 -->
+            <div class="mri-image" id="images">
+                <img src="/placeholder.svg?height=350&width=450" alt="MRI Scan 1" id="mriImage1">
+                <div class="image-info top-left">24 - TSE</div>
+                <div class="image-info top-right">Brain (healthy)</div>
+                <div class="image-info bottom-left">FOV: 210x250 mm<br>MATRIX: 384x288<br>TR/TE: 5000/120.0 ms</div>
+                <div class="image-info bottom-right">2024-11-13|15:21:05</div>
+                <div class="nav-arrow left">&lt;</div>
+                <div class="nav-arrow right">&gt;</div>
+            </div>
+            
+            <!-- Image 2 -->
+            <div class="mri-image" id="image2">
+                <img src="/placeholder.svg?height=350&width=450" alt="MRI Scan 2" id="mriImage2">
+                <div class="image-info top-left">3 - GRE</div>
+                <div class="image-info top-right">Brain</div>
+                <div class="image-info bottom-left">FOV: 280x280mm<br>MATRIX: 256x256<br>TR/TE: 9.00/4.50 ms</div>
+                <div class="image-info bottom-right">Recon: LS-FFT</div>
+                <div class="nav-arrow left">&lt;</div>
+                <div class="nav-arrow right">&gt;</div>
+            </div>
+            
+            <!-- Image 3 -->
+            <div class="mri-image" id="image3">
+                <img src="/placeholder.svg?height=350&width=450" alt="MRI Scan 3" id="mriImage3">
+                <div class="image-info top-left">1 - GRE</div>
+                <div class="image-info top-right">Brain</div>
+                <div class="image-info bottom-left">FOV: 280x280mm<br>MATRIX: 256x256<br>TR/TE: 9.00/4.50 ms</div>
+                <div class="image-info bottom-right">Recon: LS-FFT</div>
+                <div class="nav-arrow left">&lt;</div>
+                <div class="nav-arrow right">&gt;</div>
+            </div>
+            
+            <!-- Save and Run Button -->
+            <button class="btn btn-run">Save & Run</button>
+        </div>
+        
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <!-- Pulse Sequences Section -->
+            <div class="pulse-sequences">
+                <div class="section-header">
+                    <div class="section-title">Pulse sequences</div>
+                    <div class="controls">
+                        
+                    </div>
+                </div>
+                <button class="add-sequence-btn">Add pulse sequence</button>
+                <div class="sequence-list">
+                    <div class="sequence-item" onclick="selectSequence(this, 'SCOUT')">
+                        <div class="sequence-number">#3</div>
+                        <div class="sequence-name">SCOUT Images - COR</div>
+                        <div class="sequence-count">30</div>
+                    </div>
+                    <div class="sequence-item" onclick="selectSequence(this, 'T2_TSE')">
+                        <div class="sequence-number">#24</div>
+                        <div class="sequence-name">Ax T2 TSE</div>
+                        <div class="sequence-time">02m 40s</div>
+                        <div class="sequence-count">22</div>
+                    </div>
+                    <div class="sequence-item active" onclick="selectSequence(this, 'T2_FLAIR')">
+                        <div class="sequence-number">#25</div>
+                        <div class="sequence-name">Ax T2 FLAIR</div>
+                        <div class="sequence-status">Sequence has not been run</div>
+                    </div>
+                    <div class="sequence-item" onclick="selectSequence(this, 'T1_TSE')">
+                        <div class="sequence-number">#26</div>
+                        <div class="sequence-name">Ax T1 TSE</div>
+                        
+                    </div>
+                    <div class="sequence-item" onclick="selectSequence(this, 'SAG_T1')">
+                        <div class="sequence-number">#27</div>
+                        <div class="sequence-name">Sag T1 TSE</div>
+                        <div class="sequence-status">Sequence has not been run</div>
+                    </div>
+                    <div class="sequence-item" onclick="selectSequence(this, 'COR_T1')">
+                        <div class="sequence-number">#28</div>
+                        <div class="sequence-name">Cor T1 TSE</div>
+                       
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Parameters Section -->
+            <div class="parameters">
+                <div class="parameter-header">
+                    <div class="parameter-title">Set parameters - Ax T2 FLAIR #25</div>
+                    <div class="parameter-actions">
+                        <button class="btn btn-cancel">Cancel</button>
+                        <button class="btn btn-save">Save</button>
+                    </div>
+                </div>
+                
+                <!-- Parameter Tabs -->
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('geometry')">Geometry</div>
+                    <div class="tab" onclick="showTab('sequence')">Sequence</div>
+                    <div class="tab disabled">Special</div>
+                    <div class="tab disabled">Reconstruction</div>
+                    <div class="tab disabled">Advanced</div>
+                </div>
+                
+                <!-- Geometry Tab Content -->
+                <div class="tab-content active" id="geometry">
+                    <div class="form-group">
+                        <div class="form-group-half">
+                            <label class="form-label">Field of View (FOV)</label>
+                            <input type="number" class="form-control" value="250" min="100" max="500" placeholder="mm">
+                        </div>
+                        <div class="form-group-half">
+                            <label class="form-label">Matrix Size</label>
+                            <select class="form-control">
+                                <option>128*128</option>
+                                <option>256*256</option>
+                                <option selected>512*512</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-group-half">
+                            <label class="form-label">Slice Thickness</label>
+                            <input type="number" class="form-control" value="3" min="0.5" max="10" step="0.5" placeholder="mm">
+                        </div>
+                        <div class="form-group-half">
+                            <label class="form-label">Slice Gap</label>
+                            <input type="number" class="form-control" value="0" min="0" max="5" step="0.5" placeholder="mm">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-group-half">
+                            <label class="form-label">Plane Orientation</label>
+                            <select class="form-control">
+                                <option selected>Axial</option>
+                                <option>Coronal</option>
+                                <option>Sagittal</option>
+                            </select>
+                        </div>
+                        <div class="form-group-half">
+                            <label class="form-label">Fold over Direction</label>
+                            <select class="form-control">
+                                <option selected>Left-Right</option>
+                                <option>Anterior-Posterior</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sequence Tab Content -->
+                <div class="tab-content" id="sequence">
+                    <div class="form-group">
+                        <div class="form-group-half">
+                            <label class="form-label">TR (Repetition Time)</label>
+                            <input type="number" class="form-control" value="2000" min="300" max="3000" placeholder="ms">
+                        </div>
+                        <div class="form-group-half">
+                            <label class="form-label">TE (Echo Time)</label>
+                            <input type="number" class="form-control" value="80" min="10" max="150" placeholder="ms">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="form-group-half">
+                            <label class="form-label">Flip Angle</label>
+                            <input type="number" class="form-control" value="90" min="0" max="180" placeholder="degrees">
+                        </div>
+                        <div class="form-group-half">
+                            <label class="form-label">Pulse Sequences</label>
+                            <select class="form-control">
+                                <option>T1-Weighted</option>
+                                <option selected>T2-Weighted</option>
+                                <option>FLAIR</option>
+                                <option>DWI</option>
+                                <option>GRE</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Logout Button -->
+    <button class="logout-btn">Logout</button>
+    
+    <script>
+        // Function to show the selected tab
+        function showTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show the selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to the clicked tab
+            event.target.classList.add('active');
+        }
+        
+        // Function to select a sequence
+        function selectSequence(element, sequenceType) {
+            // Remove active class from all sequence items
+            document.querySelectorAll('.sequence-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to the clicked sequence item
+            element.classList.add('active');
+            
+            // Update the parameter title
+            const sequenceName = element.querySelector('.sequence-name').textContent;
+            const sequenceNumber = element.querySelector('.sequence-number').textContent;
+            document.querySelector('.parameter-title').textContent = `Set parameters - ${sequenceName} ${sequenceNumber}`;
+            
+            // Load appropriate images based on sequence type
+            updateImages(sequenceType);
+            
+            // Set default parameters based on sequence type
+            setDefaultParameters(sequenceType);
+        }
+        
+        // Function to update images based on sequence type
+        function updateImages(sequenceType) {
+            // In a real application, this would fetch images from a database
+            // For this demo, we'll just update the placeholders
+            const imageTypes = {
+                'SCOUT': 'Scout',
+                'T1_TSE': 'T1 TSE',
+                'T2_TSE': 'T2 TSE',
+                'T2_FLAIR': 'T2 FLAIR',
+                'SAG_T1': 'Sagittal T1',
+                'COR_T1': 'Coronal T1'
+            };
+            
+            // Update image labels
+            document.querySelectorAll('.mri-image .top-left').forEach((el, index) => {
+                el.textContent = `${index + 1} - ${imageTypes[sequenceType] || 'GRE'}`;
+            });
+        }
+        
+        // Function to set default parameters based on sequence type
+        function setDefaultParameters(sequenceType) {
+            // Show the appropriate tab based on sequence type
+            showTab('geometry');
+            
+            // Set default values based on sequence type
+            if (sequenceType === 'T1_TSE' || sequenceType === 'SAG_T1' || sequenceType === 'COR_T1') {
+                // T1 defaults
+                document.querySelector('#sequence input[placeholder="ms"]:first-of-type').value = 500;
+                document.querySelector('#sequence input[placeholder="ms"]:nth-of-type(2)').value = 20;
+            } else if (sequenceType === 'T2_TSE' || sequenceType === 'T2_FLAIR') {
+                // T2 defaults
+                document.querySelector('#sequence input[placeholder="ms"]:first-of-type').value = 2000;
+                document.querySelector('#sequence input[placeholder="ms"]:nth-of-type(2)').value = 80;
+            }
+        }
+        
+        // Function to save parameters to database
+        document.querySelector('.btn-save').addEventListener('click', function() {
+            saveParameters();
+        });
+        
+        document.querySelector('.btn-run').addEventListener('click', function() {
+            saveParameters();
+            runSequence();
+        });
+        
+        function saveParameters() {
+            // Get all form values
+            const parameters = {
+                geometry: {
+                    fov: document.querySelector('#geometry input[placeholder="mm"]:first-of-type').value,
+                    matrixSize: document.querySelector('#geometry select:first-of-type').value,
+                    sliceThickness: document.querySelector('#geometry input[placeholder="mm"]:nth-of-type(2)').value,
+                    sliceGap: document.querySelector('#geometry input[placeholder="mm"]:nth-of-type(3)').value,
+                    planeOrientation: document.querySelector('#geometry select:nth-of-type(2)').value,
+                    foldOverDirection: document.querySelector('#geometry select:nth-of-type(3)').value
+                },
+                sequence: {
+                    tr: document.querySelector('#sequence input[placeholder="ms"]:first-of-type').value,
+                    te: document.querySelector('#sequence input[placeholder="ms"]:nth-of-type(2)').value,
+                    flipAngle: document.querySelector('#sequence input[placeholder="degrees"]').value,
+                    pulseSequence: document.querySelector('#sequence select').value
+                }
+            };
+            
+            // In a real application, this would save to MongoDB
+            console.log('Saving parameters to database:', parameters);
+            alert('Parameters saved successfully!');
+        }
+        
+        function runSequence() {
+            // In a real application, this would trigger the MRI sequence
+            console.log('Running sequence...');
+            alert('Sequence started!');
+            
+            // Update the sequence status
+            const activeSequence = document.querySelector('.sequence-item.active .sequence-status');
+            if (activeSequence) {
+                activeSequence.textContent = 'Sequence running...';
+            }
+        }
+        
+        // Logout functionality
+        document.querySelector('.logout-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                // In a real application, this would handle logout
+                alert('Logged out successfully!');
+                // Redirect to login page
+                // window.location.href = 'login.html';
+            }
+        });
+        
+        // Initialize with default sequence
+        document.addEventListener('DOMContentLoaded', function() {
+            // Select the default sequence (T2 FLAIR)
+            const defaultSequence = document.querySelector('.sequence-item:nth-child(3)');
+            selectSequence(defaultSequence, 'T2_FLAIR');
+        });
+    </script>
+</body>
+</html>

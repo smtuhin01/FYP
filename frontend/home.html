@@ -1,17 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Home</title>
-  <link rel="stylesheet" href="css/style.css"/>
+  <title>MRI Simulator - Home</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+      background-image: url('./picture/Background photo.jpg');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 80%;
+      max-width: 600px;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+
+    .anatomy-selection {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .anatomy-card {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      
+    }
+
+    .anatomy-card:hover {
+      border-color: #007bff;
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    .anatomy-card img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+
+    .anatomy-card p {
+      font-size: 1.1em;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .logout-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #4c4a4a;
+      color: white;
+      padding: 8px 14px;
+      font-size: 0.9em;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s ease;
+    }
+
+    .logout-button:hover {
+      background-color: #000000;
+    }
+  </style>
 </head>
 <body>
-  <div class="container home">
-    <h2>Welcome to the Student Portal</h2>
-    <p>You are logged in!</p>
-    <button onclick="logout()">Logout</button>
+
+  <div class="container">
+    <h1>Welcome to the MRI Simulator</h1>
+    <p style="margin-bottom: 16px;">Select an anatomy to start the MRI simulation:</p>
+
+    <div class="anatomy-selection">
+      <div class="anatomy-card" onclick="startSimulation('cardic')">
+        <img src="./picture/Cardic.webp" alt="Cardic" />
+        <p>Cardiac</p>
+      </div>
+      <div class="anatomy-card" onclick="startSimulation('spine')">
+        <img src="./picture/spine.jpeg" alt="Spine" />
+        <p style="margin-top:50px;">Spine</p>
+
+      </div>
+      <div class="anatomy-card" onclick="startSimulation('abdominal')">
+        <img src="./picture/abdominal.jpg" alt="Abdomen" />
+        <p>Abdominal</p>
+      </div>
+      <div class="anatomy-card" onclick="startSimulation('brain')">
+        <img src="./picture/Brain.jpeg" alt="Brain" />
+        <p>Brain</p>
+      </div>
+    </div>
   </div>
-  <script src="js/script.js"></script>
+
+  <button class="logout-button" onclick="logout()">Logout</button>
+
+  <script>
+  function startSimulation(anatomy) {
+    if (anatomy === 'cardic') {
+      window.location.href = 'simulation.html'; 
+    } else {
+      alert(`The ${anatomy} simulation is coming soon. An update will be provided later.`);
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('token'); 
+    alert('You have been logged out.');
+    window.location.href = 'login.html'; 
+  }
+</script>
+
+
 </body>
 </html>
