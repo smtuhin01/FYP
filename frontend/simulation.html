@@ -418,6 +418,7 @@
       setupEventListeners();
     }
 
+    
     // Render the current 3 images
     function renderImages() {
       imageViewer.innerHTML = '';
@@ -644,7 +645,75 @@
     // Initialize the application
     document.addEventListener('DOMContentLoaded', init);
 
+ function validateParameters(parameters) {
+    const errors = [];
+    const { fov, matrixSize, sliceThickness, sliceGap, planeOrientation, foldoverDirection } = parameters.geometry;
+    const { tr, te, flipAngle, pulseSequence } = parameters.sequence;
 
+    // Convert matrixSize to numeric (assumes square matrix like 256x256)
+    const matrixValue = parseInt(matrixSize.split("×")[0]);
+    const pixelSize = fov / matrixValue;
+
+    // --- Geometry Rules ---
+    if (fov < 100 || fov > 500) errors.push("FOV must be between 100 and 500 mm");
+    if (fov < 2 * sliceThickness) errors.push("FOV should be at least twice the slice thickness");
+    if (pixelSize < 0.5 && matrixValue >= 512) errors.push("Pixel size too small for selected matrix size");
+    if (sliceThickness < 0.5 || sliceThickness > 10) errors.push("Slice thickness must be between 0.5 and 10 mm");
+    if (sliceThickness > fov / 10) errors.push("Slice thickness must be ≤ FOV / 10");
+    if (sliceGap < 0 || sliceGap > 5) errors.push("Slice gap must be between 0 and 5 mm");
+    if (sliceGap >= sliceThickness) errors.push("Slice gap must be less than slice thickness");
+
+    if (fov < 150 && foldoverDirection !== "") {
+      errors.push("Small FOV in fold-over direction may cause wrap-around artifacts");
+    }
+
+    // --- Sequence Rules ---
+    if (tr < 300 || tr > 3000) errors.push("TR must be between 300 and 3000 ms");
+    if (te < 10 || te > 150) errors.push("TE must be between 10 and 150 ms");
+    if (flipAngle < 0 || flipAngle > 180) errors.push("Flip angle must be between 0° and 180°");
+
+    if (pulseSequence === "T1-Weighted") {
+      if (tr < 300 || tr > 800) errors.push("Recommended TR for T1 is 300–800 ms");
+      if (te < 10 || te > 30) errors.push("Recommended TE for T1 is 10–30 ms");
+      if (flipAngle !== 90) errors.push("Recommended flip angle for T1 is 90°");
+    }
+    else if (pulseSequence === "T2-Weighted") {
+      if (tr < 1500 || tr > 3000) errors.push("Recommended TR for T2 is 1500–3000 ms");
+      if (te < 70 || te > 150) errors.push("Recommended TE for T2 is 70–150 ms");
+    }
+    else if (pulseSequence === "FLAIR") {
+      if (tr < 2000) errors.push("Recommended TR for FLAIR is > 2000 ms");
+      if (te < 80) errors.push("Recommended TE for FLAIR is > 80 ms");
+    }
+    else if (pulseSequence === "DWI") {
+      if (tr < 3000) errors.push("Recommended TR for DWI is ~3000 ms");
+      if (te < 70) errors.push("Recommended TE for DWI is > 70 ms");
+    }
+    else if (pulseSequence === "GRE") {
+      if (tr !== 1000 || te !== 25 || flipAngle !== 30) {
+        errors.push("Recommended for GRE: TR = 1000 ms, TE = 25 ms, Flip Angle = 30°");
+      }
+    }
+
+    return errors;
+  }
+
+  applyChangesBtn.addEventListener('click', () => {
+    const selected = images.find(img => img.id === selectedImageId);
+    if (!selected) return alert("Please select an image.");
+
+    const params = getParametersFromForm();
+    const validationErrors = validateParameters(params);
+
+    if (validationErrors.length > 0) {
+      alert("Validation Errors:\n" + validationErrors.join("\n"));
+      return;
+    }
+
+    selected.parameters = params;
+    renderImages();
+    alert("Parameters applied successfully!");
+  });
   </script>
 </body>
 </html>
