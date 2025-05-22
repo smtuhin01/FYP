@@ -1,8 +1,18 @@
 const mongoose = require('mongoose');
 
 const parameterSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  imageName: { type: String, required: true },
+ studentId: {
+    type: String,
+    required: true
+  },
+  imageId: {
+    type: String,
+    required: true
+  },
+  imageName: {
+    type: String,
+    required: true
+  },
   parameters: {
     geometry: {
       fov: Number,

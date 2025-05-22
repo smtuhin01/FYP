@@ -1,14 +1,13 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const sendEmail = require('../utils/sendEmail');
 
-// Token creator utility
+
 const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
 
-// Signup controller
+// Signup 
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
   try {
@@ -20,7 +19,7 @@ exports.signup = async (req, res) => {
   }
 };
 
-// Login controller
+// Login 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -37,42 +36,15 @@ exports.login = async (req, res) => {
   }
 };
 
-// Forgot password controller
-exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
+//  Reset Password 
+exports.resetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'No user found' });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '15m' });
-    user.resetToken = token;
-    user.resetTokenExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
-    await user.save();
-
-    const resetLink = `${process.env.CLIENT_URL}/reset-password.html?token=${token}`;
-    await sendEmail(email, 'Password Reset', `Click the link to reset your password: ${resetLink}`);
-
-    res.json({ message: 'Email sent' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// Reset password controller
-exports.resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findOne({
-      _id: decoded.id,
-      resetToken: token,
-      resetTokenExpiry: { $gt: Date.now() },
-    });
-    if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+    if (!user) return res.status(404).json({ message: 'No user found with that email' });
 
     user.password = newPassword;
-    user.resetToken = undefined;
-    user.resetTokenExpiry = undefined;
     await user.save();
 
     res.json({ message: 'Password reset successful' });
