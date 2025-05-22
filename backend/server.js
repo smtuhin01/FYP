@@ -5,6 +5,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const simulationRoutes = require('./routes/simulationRoutes');
+const parameterRoutes = require('./routes/parameterRoutes');
 
 dotenv.config();
 connectDB();
@@ -13,17 +14,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Serve all files inside /frontend at the root level
+//  Serve all files inside /frontend at the root level
 app.use(express.static(path.join(__dirname, 'frontend')));
 // Serve all frontend files
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 
-// ✅ API routes
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/simulation', simulationRoutes);
+app.use('/api/parameters', parameterRoutes);
 
-// ✅ Optional: Default route to home.html
+//  Default route to home.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'home.html'));
 });
