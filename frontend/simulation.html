@@ -350,6 +350,18 @@
   </footer>
 
   <script>
+    function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = decodeURIComponent(atob(base64Url).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(base64);
+  } catch (e) {
+    return null;
+  }
+}
+
     // Image data
     const imageFiles = [
       "2CH_801_7_thumb.jpg", "2CH_RT_1101_10_thumb.jpg", "3CH_1001_9_thumb.jpg", "4ch_701_6_thumb.jpg",
@@ -393,6 +405,11 @@
 
     let currentIndex = 0;
     let selectedImageId = null;
+    const token = localStorage.getItem('token');
+const userInfo = parseJwt(token);
+const userId = userInfo?.id;
+
+
 
     // DOM elements
     const imageViewer = document.getElementById('imageViewer');
@@ -416,13 +433,33 @@
     
 
     // Initialize the UI
-    function init() {
-      renderImages();
-      renderSequenceList();
-      setupEventListeners();
-    }
+    async function init() {
+  await loadSavedParameters();          
+  renderImages();                    
+  renderSequenceList();
+  setupEventListeners();
+}
 
-    
+
+    async function loadSavedParameters() {
+  if (!userId) return;
+  try {
+    const res = await fetch(`http://localhost:5001/api/parameters/student/${userId}`);
+    const saved = await res.json();
+
+    if (Array.isArray(saved)) {
+      saved.forEach(item => {
+        const image = images.find(img => img.name === item.imageName);
+        if (image) {
+          image.parameters = item.parameters;
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Error loading parameters:', err);
+  }
+}
+
     // Render the current 3 images
     function renderImages() {
       imageViewer.innerHTML = '';
@@ -560,21 +597,33 @@
     }
 
     // Save parameters for the selected image
-    function saveParameters() {
-      if (!selectedImageId) return;
-      
-      const parameters = getParametersFromForm();
-      
-      // Update the image parameters
-      images.forEach(image => {
-        if (image.id === selectedImageId) {
-          image.parameters = parameters;
-        }
-      });
-      
-      // Re-render the images to show updated parameters
-      renderImages();
-    }
+   async function saveParameters() {
+  if (!selectedImageId || !userId) return;
+
+  const selectedImage = images.find(img => img.id === selectedImageId);
+  const parameters = getParametersFromForm();
+
+  selectedImage.parameters = parameters;
+
+  try {
+    await fetch('http://localhost:5001/api/parameters/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId,
+        imageId: selectedImage.id, 
+        imageName: selectedImage.name,
+        parameters
+      })
+    });
+    renderImages();
+  } catch (err) {
+    console.error('Error saving parameters:', err);
+  }
+}
+
 
     // Setup event listeners
     function setupEventListeners() {
@@ -627,10 +676,7 @@
         alert('Sequence saved and running!');
       });
       
-      // Logout button
-      logoutBtn.addEventListener('click', () => {
-        alert('Logging out...');
-      });
+
       logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('token'); // Clear saved token
   window.location.href = 'login.html'; // Redirect to login page
