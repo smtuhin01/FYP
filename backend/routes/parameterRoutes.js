@@ -1,20 +1,19 @@
 
 const express = require('express');
 const router = express.Router();
-const ImageParam = require('../models/parameter');
+const ImageParam = require('../models/ImageParameter');
 
 router.post('/save', async (req, res) => {
-  const { studentId, imageId, imageName, parameters } = req.body;
+  const { userId, imageId, imageName, parameters } = req.body;
 
   try {
-    const existing = await ImageParam.findOne({ studentId, imageId });
-
+   const existing = await ImageParam.findOne({ userId, imageId });
     if (existing) {
       existing.parameters = parameters;
       await existing.save();
       res.status(200).json({ message: 'Parameters updated successfully.' });
     } else {
-      await ImageParam.create({ studentId, imageId, imageName, parameters });
+     await ImageParam.create({ userId, imageId, imageName, parameters });
       res.status(201).json({ message: 'Parameters saved successfully.' });
     }
   } catch (err) {
@@ -24,9 +23,9 @@ router.post('/save', async (req, res) => {
 });
 
 // Get all saved parameters for a student
-router.get('/student/:studentId', async (req, res) => {
+router.get('/student/:userId', async (req, res) => {
   try {
-    const data = await ImageParam.find({ studentId: req.params.studentId });
+    const data = await ImageParam.find({ userId: req.params.userId });
     res.status(200).json(data);
   } catch (err) {
     console.error(err);

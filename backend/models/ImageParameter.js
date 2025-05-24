@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 
-const parameterSchema = new mongoose.Schema({
- studentId: {
-    type: String,
+const imageParameterSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
   imageId: {
@@ -31,5 +32,4 @@ const parameterSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Parameter', parameterSchema);
-
+module.exports = mongoose.model('ImageParameter', imageParameterSchema);
