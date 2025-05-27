@@ -150,6 +150,12 @@
       border-radius: 0.375rem;
     }
     
+    .canvas-container{
+      position: absolute !important;
+      min-width: 100%;
+    }
+
+
     @media (max-width: 768px) {
       .grid-cols-3 {
         grid-template-columns: 1fr;
@@ -487,11 +493,11 @@ const userId = userInfo?.id;
       currentImages.forEach(image => {
       const imageCard = document.createElement('div');
       
-imageCard.className = 'bg-white rounded-lg shadow overflow-hidden';
+imageCard.className = 'bg-white rounded-lg shadow overflow-hidden ';
 imageCard.innerHTML = `
   <div id="${image.id}" class="image-container">
     <div class="image-label">${image.name}</div>
-    <div class="relative w-full h-full">
+    <div class="relative w-full h-full flex">
       <img src="${image.path}" alt="${image.name}" class="w-full h-full object-cover z-0" onerror="this.src='/placeholder.svg?height=256&width=256'">
       <canvas class="overlay-canvas absolute top-0 left-0 w-full h-full z-10"></canvas>
     </div>
@@ -567,7 +573,7 @@ function setupCanvasOverlay(canvasEl, overlayData = null) {
         width: overlayData?.width ?? width / 2,
         height: overlayData?.height ?? height / 2,
         angle: overlayData?.angle ?? 0,
-        fill: 'rgba(0, 0, 255, 0.2)',
+        fill: 'transparent',
         stroke: 'blue',
         strokeWidth: 2,
         hasRotatingPoint: true,
