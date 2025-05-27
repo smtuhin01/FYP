@@ -4,7 +4,6 @@ const path = require('path');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
-const simulationRoutes = require('./routes/simulationRoutes');
 const parameterRoutes = require('./routes/parameterRoutes');
 
 dotenv.config();
@@ -22,7 +21,6 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/simulation', simulationRoutes);
 app.use('/api/parameters', parameterRoutes);
 
 //  Default route to home.html

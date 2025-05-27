@@ -2,8 +2,7 @@ const ImageParameter = require('../models/ImageParameter');
 
 // Save or update parameters for an image
 exports.saveImageParameter = async (req, res) => {
-  const { userId, imageId, imageName, parameters } = req.body;
-
+const { userId, imageId, imageName, parameters, overlay } = req.body;
   try {
     // Check if entry already exists for this user and image
     let record = await ImageParameter.findOne({ userId, imageId });
@@ -11,6 +10,7 @@ exports.saveImageParameter = async (req, res) => {
     if (record) {
       // Update existing record
       record.parameters = parameters;
+      record.overlay = overlay;
       await record.save();
     } else {
       // Create new record
@@ -18,7 +18,8 @@ exports.saveImageParameter = async (req, res) => {
         userId,
         imageId,
         imageName,
-        parameters
+        parameters,
+        overlay
       });
     }
 

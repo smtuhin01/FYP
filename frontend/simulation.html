@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MRI Simulation Page</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+
   <style>
   
 
   .image-container {
   position: relative;
   height: 256px;
-  overflow: hidden;
+  overflow: visible !important;
   border-radius: 0.375rem;
   display: flex;
   align-items: center;
@@ -20,6 +22,15 @@
   border-radius: 0.375rem;
   overflow: hidden;
   border: 1px solid #202020;
+}
+.overlay-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+  z-index:10;
 }
 .image-container:hover {
   transform: scale(1.01);
@@ -30,10 +41,10 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  display: block;
+  position: relative; 
+  z-index: 1;
 }
-
-
-
     
     .image-label {
       position: absolute;
@@ -146,14 +157,12 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-gray-50 p-4">
-  <body class="min-h-screen bg-cover bg-center bg-no-repeat" style="background-image: url('./picture/simulationpage.jpg')">
-
+<body class="min-h-screen bg-gray-50 p-4 bg-cover bg-center bg-no-repeat" style="background-image: url('./picture/simulationpage.jpg')">
   <header class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold text-gray-800">Simulation page</h1>
     <div class="flex items-center gap-4">
       <button id="saveRunBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-        Save & Run
+         Run Simulation
       </button>
       <div class="relative">
         <button id="notificationBtn" class="text-gray-600 hover:text-gray-800">
@@ -453,6 +462,10 @@ const userId = userInfo?.id;
         if (image) {
           image.parameters = item.parameters;
         }
+        if (item.overlay) {
+        image.overlay = item.overlay||null;  // Save overlay data into image object
+}
+
       });
     }
   } catch (err) {
@@ -472,25 +485,35 @@ const userId = userInfo?.id;
       }
       
       currentImages.forEach(image => {
-        const imageCard = document.createElement('div');
-        imageCard.className = 'bg-white rounded-lg shadow overflow-hidden';
-        imageCard.innerHTML = `
-          <div class="image-container">
-            <div class="image-label">${image.name}</div>
-            <img src="${image.path}" alt="${image.name}" class="w-full h-full object-cover" onerror="this.src='/placeholder.svg?height=256&width=256'">
-          </div>
-          <div class="image-info">
-            <div class="flex justify-between">
-              <span>FOV: ${image.parameters.geometry.fov}mm</span>
-              <span>Matrix: ${image.parameters.geometry.matrixSize}</span>
-            </div>
-            <div class="flex justify-between mt-1">
-              <span>TR: ${image.parameters.sequence.tr}ms</span>
-              <span>TE: ${image.parameters.sequence.te}ms</span>
-            </div>
-          </div>
-        `;
-        
+      const imageCard = document.createElement('div');
+      
+imageCard.className = 'bg-white rounded-lg shadow overflow-hidden';
+imageCard.innerHTML = `
+  <div id="${image.id}" class="image-container">
+    <div class="image-label">${image.name}</div>
+    <div class="relative w-full h-full">
+      <img src="${image.path}" alt="${image.name}" class="w-full h-full object-cover z-0" onerror="this.src='/placeholder.svg?height=256&width=256'">
+      <canvas class="overlay-canvas absolute top-0 left-0 w-full h-full z-10"></canvas>
+    </div>
+  </div>
+  <div class="image-info">
+    <div class="flex justify-between">
+      <span>FOV: ${image.parameters.geometry.fov}mm</span>
+      <span>Matrix: ${image.parameters.geometry.matrixSize}</span>
+    </div>
+    <div class="flex justify-between mt-1">
+      <span>TR: ${image.parameters.sequence.tr}ms</span>
+      <span>TE: ${image.parameters.sequence.te}ms</span>
+    </div>
+  </div>
+`;
+
+const canvasEl = imageCard.querySelector('.overlay-canvas');
+canvasEl.setAttribute('data-image-id', image.id);
+requestAnimationFrame(() => {
+  setupCanvasOverlay(canvasEl, image.overlay);
+});
+
         // Set the selected image when clicking on an image
         imageCard.addEventListener('click', () => {
           selectedImageId = image.id;
@@ -499,6 +522,7 @@ const userId = userInfo?.id;
         });
         
         imageViewer.appendChild(imageCard);
+
       });
       
       // Set the first image as selected by default
@@ -509,7 +533,64 @@ const userId = userInfo?.id;
       }
     }
 
+function setupCanvasOverlay(canvasEl, overlayData = null) {
+  const parent = canvasEl.parentElement;
+  const img = parent.querySelector('img');
 
+  console.log('Setting up overlay for:', img?.src);
+
+  img.onload = () => {
+    console.log('Image loaded:', img.src);
+    setTimeout(() => {
+      const width = img.clientWidth;
+      const height = img.clientHeight;
+
+      console.log('Image dimensions:', width, height);
+
+      if (!width || !height) {
+        console.warn('Image dimensions not available yet');
+        return;
+      }
+
+      canvasEl.width = width;
+      canvasEl.height = height;
+     
+      const canvas = new fabric.Canvas(canvasEl, {
+        selection: false,
+        backgroundColor: null,
+        preserveObjectStacking: true
+      });
+
+      const rect = new fabric.Rect({
+        left: overlayData?.left ?? width / 4,
+        top: overlayData?.top ?? height / 4,
+        width: overlayData?.width ?? width / 2,
+        height: overlayData?.height ?? height / 2,
+        angle: overlayData?.angle ?? 0,
+        fill: 'rgba(0, 0, 255, 0.2)',
+        stroke: 'blue',
+        strokeWidth: 2,
+        hasRotatingPoint: true,
+        cornerColor: 'blue',
+        transparentCorners: false
+      });
+
+      canvas.add(rect);
+      canvas.setWidth(width);
+      canvas.setHeight(height);
+      canvas.renderAll();
+
+      canvasEl._fabric = canvas;
+      console.log('Overlay rectangle added to canvas');
+    }, 100); // wait to ensure image is painted
+  };
+
+  // Manually trigger if image is already loaded
+  if (img.complete && img.naturalHeight !== 0) {
+    console.log('Manually triggering image.onload for cached image');
+    img.onload();
+  }
+}
 
     // Render the sequence list
     function renderSequenceList() {
@@ -595,6 +676,23 @@ const userId = userInfo?.id;
         }
       };
     }
+function getOverlayDataForImage(imageId) {
+  const canvasEl = document.querySelector(`[data-image-id="${imageId}"]`);
+
+  const canvas = canvasEl?._fabric;
+  if (!canvas) return null;
+
+  const rect = canvas.getObjects('rect')[0];
+  if (!rect) return null;
+
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width * rect.scaleX,
+    height: rect.height * rect.scaleY,
+    angle: rect.angle
+  };
+}
 
     // Save parameters for the selected image
    async function saveParameters() {
@@ -602,7 +700,7 @@ const userId = userInfo?.id;
 
   const selectedImage = images.find(img => img.id === selectedImageId);
   const parameters = getParametersFromForm();
-
+  const overlayData = getOverlayDataForImage(selectedImage.id); 
   selectedImage.parameters = parameters;
 
   try {
@@ -615,12 +713,15 @@ const userId = userInfo?.id;
         userId,
         imageId: selectedImage.id, 
         imageName: selectedImage.name,
-        parameters
+        parameters,
+        overlay: overlayData
       })
     });
     renderImages();
   } catch (err) {
     console.error('Error saving parameters:', err);
+    console.log('Overlay data being saved:', overlayData);
+
   }
 }
 
@@ -671,10 +772,11 @@ const userId = userInfo?.id;
       });
       
       // Save and run button
-      saveRunBtn.addEventListener('click', () => {
-        saveParameters();
-        alert('Sequence saved and running!');
-      });
+     document.getElementById("saveRunBtn").addEventListener("click", async () => {
+    await saveParameters(); // Save parameters before redirect
+    window.location.href = "simulationResult.html"; // Redirect to the correct file
+    alert('Sequence saved and running!');
+  });
       
 
       logoutBtn.addEventListener('click', () => {
