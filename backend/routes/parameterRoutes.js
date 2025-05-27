@@ -11,6 +11,7 @@ router.post('/save', async (req, res) => {
     if (existing) {
       existing.parameters = parameters;
       existing.overlay = overlay;
+      existing.markModified('overlay');
       await existing.save();
       res.status(200).json({ message: 'Parameters updated successfully.' });
     } else {
