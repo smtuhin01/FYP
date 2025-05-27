@@ -29,6 +29,13 @@ const imageParameterSchema = new mongoose.Schema({
       flipAngle: Number,
       pulseSequence: String
     }
+  },
+  overlay: {
+    left: Number,
+    top: Number,
+    width: Number,
+    height: Number,
+    angle: Number
   }
 }, { timestamps: true });
 
