@@ -25,17 +25,18 @@
       <button type="submit" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">Register</button>
     </form>
     <p class="mt-4 text-sm text-center">
-      Already have an account? <a href="login.html" class="text-blue-500 hover:underline">Login</a>
+      Already have an account? <a href="lecturer-login.html" class="text-blue-500 hover:underline">Login</a>
     </p>
   </div>
 
   <script>
-    document.getElementById('lecturerRegisterForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+  document.getElementById('lecturerRegisterForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
 
+    try {
       const res = await fetch('http://localhost:5001/api/lecturer/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,11 +46,15 @@
       const data = await res.json();
       if (res.ok) {
         alert('Registration successful!');
-        window.location.href = 'login.html';
+        window.location.href = 'lecturer-login.html';  // redirect to lecturer login
       } else {
         alert(data.message || 'Registration failed');
       }
-    });
-  </script>
+    } catch (err) {
+      alert('An error occurred: ' + err.message);
+    }
+  });
+</script>
+
 </body>
 </html>
