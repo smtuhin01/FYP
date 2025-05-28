@@ -839,9 +839,6 @@ const badge = document.getElementById('notificationBadge');
   }
 
 
-    // Initialize the application
-    document.addEventListener('DOMContentLoaded', init);
-
  function validateParameters(parameters) {
     const errors = [];
     const { fov, matrixSize, sliceThickness, sliceGap, planeOrientation, foldoverDirection } = parameters.geometry;
@@ -911,9 +908,13 @@ const badge = document.getElementById('notificationBadge');
     renderImages();
     alert("Parameters applied successfully!");
   });
-  document.addEventListener('DOMContentLoaded', () => {
-  loadNotifications(); // Fetch and display feedback
-  init();              // Your existing function to load parameters/images
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadNotifications();          
+  await loadSavedParameters();       
+  renderImages();                     
+  renderSequenceList();               
+  setupEventListeners();             
 });
 
   </script>
