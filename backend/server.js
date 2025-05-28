@@ -13,10 +13,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-//  Serve all files inside /frontend at the root level
-app.use(express.static(path.join(__dirname, 'frontend')));
-// Serve all frontend files
-app.use(express.static(path.join(__dirname, '../frontend')));
+// ✅ Serve all static files from ../frontend (correct path from backend/server.js)
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+// ✅ (Optional) Alias /lecturer-login.html to the subfolder
+app.get('/lecturer-login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'lecturer', 'lecturer-login.html'));
+});
 
 
 // API routes
