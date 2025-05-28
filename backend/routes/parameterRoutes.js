@@ -4,6 +4,7 @@ const router = express.Router();
 const ImageParam = require('../models/ImageParameter');
 
 router.post('/save', async (req, res) => {
+  console.log("Incoming data:", req.body); 
   const { userId, imageId, imageName, parameters,overlay } = req.body;
 
   try {
