@@ -6,13 +6,22 @@
   <title>Lecturer Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
+<body class="bg-gray-100 min-h-screen p-6 flex flex-col justify-between">
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow w-full">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold">Lecturer Dashboard</h2>
-      <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
     </div>
-    <h3 class="text-lg font-semibold mb-4">Students</h3>
+
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold">Students</h3>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search by name or email"
+        class="px-3 py-2 border rounded-md w-64"
+      />
+    </div>
+
     <table class="w-full table-auto">
       <thead>
         <tr class="bg-gray-200">
@@ -24,10 +33,25 @@
     </table>
   </div>
 
+  <!-- Logout button fixed to bottom-right -->
+  <div class="w-full flex justify-end mt-4 pr-6">
+    <button
+      id="logoutBtn"
+      class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+    >
+      Logout
+    </button>
+  </div>
+
   <script>
-    document.getElementById('logoutBtn').addEventListener('click', () => {
+    const logoutBtn = document.getElementById('logoutBtn');
+    const searchInput = document.getElementById('searchInput');
+    const tbody = document.getElementById('studentTableBody');
+    let allStudents = [];
+
+    logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('lecturerToken');
-      window.location.href = 'login.html';
+      window.location.href = 'lecturer-login.html';
     });
 
     async function fetchStudents() {
@@ -36,8 +60,12 @@
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const students = await res.json();
-      const tbody = document.getElementById('studentTableBody');
+      allStudents = students;
+      renderStudents(students);
+    }
 
+    function renderStudents(students) {
+      tbody.innerHTML = '';
       students.forEach(({ student }) => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -49,6 +77,14 @@
         tbody.appendChild(row);
       });
     }
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase();
+      const filtered = allStudents.filter(({ student }) =>
+        student.name.toLowerCase().includes(query) || student.email.toLowerCase().includes(query)
+      );
+      renderStudents(filtered);
+    });
 
     fetchStudents();
   </script>
