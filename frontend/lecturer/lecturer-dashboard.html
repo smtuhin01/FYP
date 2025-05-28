@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecturer Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold">Lecturer Dashboard</h2>
+      <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Logout</button>
+    </div>
+    <h3 class="text-lg font-semibold mb-4">Students</h3>
+    <ul id="studentList" class="space-y-2">
+      <!-- Student list items will be rendered here -->
+    </ul>
+  </div>
+
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('lecturerToken');
+      window.location.href = 'login.html';
+    });
+
+    async function fetchStudents() {
+      const token = localStorage.getItem('lecturerToken');
+      const res = await fetch('http://localhost:5001/api/lecturer/students', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const students = await res.json();
+      const list = document.getElementById('studentList');
+      students.forEach(student => {
+        const li = document.createElement('li');
+        li.className = 'bg-gray-100 p-3 rounded cursor-pointer hover:bg-blue-100';
+        li.textContent = `${student.name} (${student.email})`;
+        li.addEventListener('click', () => {
+          localStorage.setItem('selectedStudentId', student._id);
+          window.location.href = 'viewStudent.html';
+        });
+        list.appendChild(li);
+      });
+    }
+
+    fetchStudents();
+  </script>
+</body>
+</html>

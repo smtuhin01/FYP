@@ -5,7 +5,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const parameterRoutes = require('./routes/parameterRoutes');
-
+const lecturerRoutes = require('./routes/lecturerRoutes');
 dotenv.config();
 connectDB();
 
@@ -22,7 +22,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/parameters', parameterRoutes);
-
+app.use('/api/lecturer', lecturerRoutes);
 //  Default route to home.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'home.html'));
