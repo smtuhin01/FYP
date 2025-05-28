@@ -591,7 +591,7 @@ const rect = new fabric.Rect({
 
       canvasEl._fabric = canvas;
       console.log('Overlay rectangle added to canvas');
-    }, 100); // wait to ensure image is painted
+    }, 50); // wait to ensure image is painted
   };
 
   // Manually trigger if image is already loaded
@@ -755,6 +755,11 @@ function getOverlayDataForImage(imageId) {
           });
         });
       });
+     // ✅ Setup notification toggle here (ensure DOM is ready)
+  const notificationBtn = document.getElementById('notificationBtn');
+  const notificationPanel = document.getElementById('notificationPanel');
+  const closeNotificationsBtn = document.getElementById('closeNotificationsBtn');
+ 
       
       // Toggle notification panel
       notificationBtn.addEventListener('click', () => {
@@ -807,6 +812,32 @@ function getOverlayDataForImage(imageId) {
         }
       });
     }
+
+  async function loadNotifications() {
+  const token = localStorage.getItem('token');
+  const res = await fetch('http://localhost:5001/api/lecturer/student/notifications', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const notes = await res.json();
+
+  const container = document.getElementById('notificationsList');
+  container.innerHTML = ''; // Clear previous
+
+  notes.forEach(note => {
+    const li = document.createElement('li');
+    li.className = 'notification-item';
+    li.innerHTML = `
+      <p class="text-sm"><strong>${note.lecturerId.name}</strong>: ${note.comment} (${note.mark})</p>
+      <p class="text-xs text-gray-500 mt-1">${new Date(note.createdAt).toLocaleString()}</p>
+    `;
+    container.appendChild(li);
+  });
+
+const badge = document.getElementById('notificationBadge');
+  badge.textContent = notes.length;
+  badge.style.display = notes.length > 0 ? 'flex' : 'none';
+  }
+
 
     // Initialize the application
     document.addEventListener('DOMContentLoaded', init);
@@ -880,6 +911,11 @@ function getOverlayDataForImage(imageId) {
     renderImages();
     alert("Parameters applied successfully!");
   });
+  document.addEventListener('DOMContentLoaded', () => {
+  loadNotifications(); // Fetch and display feedback
+  init();              // Your existing function to load parameters/images
+});
+
   </script>
 </body>
 </html>

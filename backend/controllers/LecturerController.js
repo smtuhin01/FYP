@@ -58,6 +58,8 @@ const getAllStudents = async (req, res) => {
     const grouped = {};
 
     data.forEach(record => {
+      if (!record.userId) return; // ✅ Skip broken/missing records
+
       const key = record.userId._id;
       if (!grouped[key]) {
         grouped[key] = { student: record.userId, images: [] };
@@ -71,6 +73,7 @@ const getAllStudents = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch students', error: err.message });
   }
 };
+
 
 // Lecturer commenting on a student
 const commentOnStudent = async (req, res) => {
@@ -96,12 +99,17 @@ const commentOnStudent = async (req, res) => {
 const getNotifications = async (req, res) => {
   try {
     const notes = await Notification.find({ studentId: req.user.id }).populate('lecturerId');
+
+    // Optionally mark as read
+    await Notification.updateMany({ studentId: req.user.id, isRead: false }, { isRead: true });
+
     res.json(notes);
   } catch (err) {
     console.error('❌ Get notifications error:', err.message);
     res.status(500).json({ message: 'Failed to fetch notifications', error: err.message });
   }
 };
+
 
 module.exports = {
   register,
