@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
     <title>Medical Video Viewer</title>
     <style>
         * {
@@ -302,11 +304,7 @@
             <div class="sidebar-header">
                 <h2>Video viewer</h2>
                 <div class="tabs">
-                    <button class="tab active">Finished sequences</button>
-                    <button id="logoutBtn" class="bg-gray-700 hover:bg-black text-white px-4 py-2 rounded-md">
-                    Logout
-                   </button>
-                   
+                    <button class="tab active">Finished sequences</button>  
                 </div>
             </div>
             
@@ -336,10 +334,14 @@
                 </div>
             </div>
         </div>
-    </div>
-  <button id="logoutBtn" class="bg-gray-700 hover:bg-black text-white px-4 py-2 rounded-md">
-  Logout
-</button>
+    <div class="fixed bottom-6 right-6 z-50">
+  <button id="logoutBtn" class="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-semibold px-4 py-2 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+    </svg>
+    Logout
+  </button>
+</div>
     <script>
         // Video data with file paths
         const videoData = [
