@@ -594,7 +594,7 @@ const rect = new fabric.Rect({
     }, 50); // wait to ensure image is painted
   };
 
-  // Manually trigger if image is already loaded
+  
   if (img.complete && img.naturalHeight !== 0) {
     console.log('Manually triggering image.onload for cached image');
     img.onload();
