@@ -690,7 +690,7 @@ function getOverlayDataForImage(imageId) {
 
   const canvas = canvasEl?._fabric;
   if (!canvas) return null;
-
+   canvas.renderAll();
   const rect = canvas.getObjects('rect')[0];
   if (!rect) return null;
 
@@ -892,22 +892,29 @@ const badge = document.getElementById('notificationBadge');
     return errors;
   }
 
-  applyChangesBtn.addEventListener('click', () => {
-    const selected = images.find(img => img.id === selectedImageId);
-    if (!selected) return alert("Please select an image.");
+applyChangesBtn.addEventListener('click', async () => {
+  const selected = images.find(img => img.id === selectedImageId);
+  if (!selected) return alert("Please select an image.");
 
-    const params = getParametersFromForm();
-    const validationErrors = validateParameters(params);
+  const params = getParametersFromForm();
+  const validationErrors = validateParameters(params);
 
-    if (validationErrors.length > 0) {
-      alert("Validation Errors:\n" + validationErrors.join("\n"));
-      return;
-    }
+  if (validationErrors.length > 0) {
+    alert("Validation Errors:\n" + validationErrors.join("\n"));
+    return;
+  }
 
-    selected.parameters = params;
-    renderImages();
-    alert("Parameters applied successfully!");
-  });
+  const overlayData = getOverlayDataForImage(selectedImage.id);
+selectedImage.parameters = parameters;
+selectedImage.overlay = overlayData; // ✅ Make sure this is assigned
+
+
+  await saveParameters(); // ✅ Save to database too
+ await loadSavedParameters();
+  renderImages();  
+  alert("Parameters applied successfully!");
+});
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadNotifications();          
