@@ -1,11 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>View Student Simulation</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+  <style>
+    
+    .overlayCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+  </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-6">
   <div class="max-w-6xl mx-auto bg-white p-6 rounded shadow">
@@ -15,140 +26,146 @@
     <div class="mt-6">
       <h3 class="text-lg font-semibold mb-2">Leave Feedback</h3>
       <textarea id="comment" class="w-full p-3 border rounded mb-2" placeholder="Write your feedback here..."></textarea>
-      <input type="number" id="mark" class="w-full p-3 border rounded mb-2" placeholder="Enter score/mark">
+      <input type="number" id="mark" class="w-full p-3 border rounded mb-2" placeholder="Enter score/mark" />
       <button id="sendFeedback" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Submit Feedback</button>
     </div>
   </div>
 
- <script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const studentId = urlParams.get('userId');
-  const token = localStorage.getItem('lecturerToken');
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentId = urlParams.get('userId');
+    const token = localStorage.getItem('lecturerToken');
 
-  async function fetchStudentImages() {
-    const res = await fetch(`http://localhost:5001/api/parameters/student/${studentId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    async function fetchStudentImages() {
+      const res = await fetch(`http://localhost:5001/api/parameters/student/${studentId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return await res.json();
+    }
+
+    function createImageCard(data) {
+      const container = document.createElement('div');
+      container.className = 'bg-gray-50 border rounded shadow-sm p-2';
+
+      const geom = data.parameters.geometry;
+      const seq = data.parameters.sequence;
+
+      container.innerHTML = `
+        <h4 class="font-semibold text-sm mb-1">${data.imageName}</h4>
+        <div class="relative w-full h-48 bg-white rounded overflow-hidden">
+          <img id="img-${data.imageId}" src="/cardic/${data.imageName.replace(/ /g, '_')}_thumb.jpg" class="w-full h-full object-contain" />
+          <canvas class="overlayCanvas w-full h-full" data-id="${data.imageId}"></canvas>
+        </div>
+        <div class="text-xs text-gray-700 mt-2 space-y-1">
+          <p><strong>FOV:</strong> ${geom.fov} mm</p>
+          <p><strong>Matrix Size:</strong> ${geom.matrixSize}</p>
+          <p><strong>Slice Thickness:</strong> ${geom.sliceThickness} mm</p>
+          <p><strong>Slice Gap:</strong> ${geom.sliceGap} mm</p>
+          <p><strong>Plane Orientation:</strong> ${geom.planeOrientation}</p>
+          <p><strong>Fold Over Direction:</strong> ${geom.foldoverDirection}</p>
+          <p><strong>TR:</strong> ${seq.tr} ms</p>
+          <p><strong>TE:</strong> ${seq.te} ms</p>
+          <p><strong>Flip Angle:</strong> ${seq.flipAngle}°</p>
+          <p><strong>Pulse Sequence:</strong> ${seq.pulseSequence}</p>
+          <p><strong>Overlay:</strong> L: ${data.overlay?.left ?? 'N/A'}, T: ${data.overlay?.top ?? 'N/A'}, W: ${data.overlay?.width ?? 'N/A'}, H: ${data.overlay?.height ?? 'N/A'}, A: ${data.overlay?.angle ?? 'N/A'}</p>
+        </div>
+      `;
+
+      return container;
+    }
+
+    function renderOverlay(canvasEl, overlay, imageEl) {
+  const parent = imageEl.parentElement;
+  parent.style.position = 'relative';
+
+  const drawOverlay = () => {
+    const renderedWidth = imageEl.clientWidth;
+    const renderedHeight = imageEl.clientHeight;
+
+    // Set canvas size to match rendered image
+    canvasEl.width = renderedWidth;
+    canvasEl.height = renderedHeight;
+    canvasEl.style.width = `${renderedWidth}px`;
+    canvasEl.style.height = `${renderedHeight}px`;
+    canvasEl.style.left = '0px';
+    canvasEl.style.top = '0px';
+
+    const canvas = new fabric.Canvas(canvasEl, {
+      selection: false,
+      preserveObjectStacking: true,
+      backgroundColor: null
     });
-    return await res.json();
-  }
 
-  function createImageCard(data) {
-    const container = document.createElement('div');
-    container.className = 'bg-gray-50 border rounded shadow-sm p-2';
+    if (overlay) {
+      const rect = new fabric.Rect({
+        left: overlay.left,
+        top: overlay.top,
+        width: overlay.width,
+        height: overlay.height,
+        angle: overlay.angle,
+        fill: 'transparent',
+        stroke: 'blue',
+        strokeWidth: 2,
+        selectable: false,
+        hasControls: false,
+        hasBorders: false,
+        originX: 'left',
+        originY: 'top'
+      });
 
-    const geom = data.parameters.geometry;
-    const seq = data.parameters.sequence;
-
-    container.innerHTML = `
-      <h4 class="font-semibold text-sm mb-1">${data.imageName}</h4>
-      <div class="relative">
-        <img id="img-${data.imageId}" src="/cardic/${data.imageName.replace(/ /g, '_')}_thumb.jpg" class="w-full h-48 object-contain bg-white rounded" />
-        <canvas class="overlayCanvas absolute top-0 left-0 w-full h-full" data-id="${data.imageId}"></canvas>
-      </div>
-      <div class="text-xs text-gray-700 mt-2 space-y-1">
-        <p><strong>FOV:</strong> ${geom.fov} mm</p>
-        <p><strong>Matrix Size:</strong> ${geom.matrixSize}</p>
-        <p><strong>Slice Thickness:</strong> ${geom.sliceThickness} mm</p>
-        <p><strong>Slice Gap:</strong> ${geom.sliceGap} mm</p>
-        <p><strong>Plane Orientation:</strong> ${geom.planeOrientation}</p>
-        <p><strong>Fold Over Direction:</strong> ${geom.foldoverDirection}</p>
-        <p><strong>TR:</strong> ${seq.tr} ms</p>
-        <p><strong>TE:</strong> ${seq.te} ms</p>
-        <p><strong>Flip Angle:</strong> ${seq.flipAngle}°</p>
-        <p><strong>Pulse Sequence:</strong> ${seq.pulseSequence}</p>
-        <p><strong>Overlay:</strong> L: ${data.overlay?.left ?? 'N/A'}, T: ${data.overlay?.top ?? 'N/A'}, W: ${data.overlay?.width ?? 'N/A'}, H: ${data.overlay?.height ?? 'N/A'}, A: ${data.overlay?.angle ?? 'N/A'}</p>
-      </div>
-    `;
-
-    return container;
-  }
-
-  function renderOverlay(canvasEl, overlay, image) {
-  const canvas = new fabric.Canvas(canvasEl, {
-    selection: false,
-    preserveObjectStacking: true,
-    backgroundColor: null
-  });
-
-  image.onload = () => {
-    setTimeout(() => {
-      const width = image.clientWidth;
-      const height = image.clientHeight;
-      canvas.setWidth(width);
-      canvas.setHeight(height);
-
-      if (overlay) {
-        const rect = new fabric.Rect({
-          left: overlay.left ?? (width - 200) / 2,
-          top: overlay.top ?? (height - 200) / 2,
-          width: overlay.width ?? 200,
-          height: overlay.height ?? 200,
-          angle: overlay.angle ?? 0,
-          fill: 'transparent',
-          stroke: 'blue',
-          strokeWidth: 2,
-          hasRotatingPoint: true,
-          cornerColor: 'blue',
-          transparentCorners: false,
-          lockUniScaling: true,
-          selectable: false,
-          hasControls: false,
-          hasBorders: false
-        });
-        canvas.add(rect);
-        canvas.renderAll();
-      }
-    }, 100); // Wait for image to be visually rendered
+      canvas.add(rect);
+      canvas.renderAll();
+    }
   };
 
-  if (image.complete && image.naturalHeight !== 0) {
-    image.onload();
+  if (imageEl.complete && imageEl.naturalHeight !== 0) {
+    drawOverlay();
+  } else {
+    imageEl.onload = drawOverlay;
   }
 }
 
+    async function init() {
+      const data = await fetchStudentImages();
+      const viewer = document.getElementById('simulationViewer');
+      viewer.innerHTML = '';
 
-  async function init() {
-    const data = await fetchStudentImages();
-    const viewer = document.getElementById('simulationViewer');
-    viewer.innerHTML = '';
+      data.forEach(d => {
+        const card = createImageCard(d);
+        viewer.appendChild(card);
 
-    data.forEach(d => {
-      const card = createImageCard(d);
-      viewer.appendChild(card);
-
-      const canvasEl = card.querySelector('canvas');
-      const imgEl = card.querySelector('img');
-      renderOverlay(canvasEl, d.overlay, imgEl);
-    });
-  }
-
-  document.getElementById('sendFeedback').addEventListener('click', async () => {
-    const comment = document.getElementById('comment').value;
-    const mark = document.getElementById('mark').value;
-
-    const res = await fetch('http://localhost:5001/api/lecturer/comment', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ studentId, comment, mark })
-    });
-
-    if (res.ok) {
-      alert('Feedback sent successfully!');
-      document.getElementById('comment').value = '';
-      document.getElementById('mark').value = '';
-    } else {
-      const data = await res.json();
-      alert('Failed to send feedback: ' + data.message);
+        const canvasEl = card.querySelector('canvas');
+        const imgEl = card.querySelector('img');
+        renderOverlay(canvasEl, d.overlay, imgEl);
+      });
     }
-  });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    init();
-  });
-</script>
+    document.getElementById('sendFeedback').addEventListener('click', async () => {
+      const comment = document.getElementById('comment').value;
+      const mark = document.getElementById('mark').value;
 
+      const res = await fetch('http://localhost:5001/api/lecturer/comment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ studentId, comment, mark })
+      });
+
+      if (res.ok) {
+        alert('Feedback sent successfully!');
+        document.getElementById('comment').value = '';
+        document.getElementById('mark').value = '';
+      } else {
+        const data = await res.json();
+        alert('Failed to send feedback: ' + data.message);
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+    });
+  </script>
 </body>
 </html>
