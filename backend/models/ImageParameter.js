@@ -33,10 +33,12 @@ const imageParameterSchema = new mongoose.Schema({
   overlay: {
     left: Number,
     top: Number,
+
     width: Number,
     height: Number,
     angle: Number
   }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('ImageParameter', imageParameterSchema);
