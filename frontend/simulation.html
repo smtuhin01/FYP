@@ -726,7 +726,7 @@ function getOverlayDataForImage(imageId) {
         overlay: overlayData
       })
     });
-    renderImages();
+    // renderImages();
   } catch (err) {
     console.error('Error saving parameters:', err);
     console.log('Overlay data being saved:', overlayData);
@@ -906,13 +906,31 @@ applyChangesBtn.addEventListener('click', async () => {
 
   const overlayData = getOverlayDataForImage(selectedImage.id);
 selectedImage.parameters = parameters;
-selectedImage.overlay = overlayData; // ✅ Make sure this is assigned
+selectedImage.overlay = overlayData; 
 
 
-  await saveParameters(); // ✅ Save to database too
+  await saveParameters(); 
  await loadSavedParameters();
-  renderImages();  
+  // renderImages(); 
+    const canvasEl = document.querySelector(`[data-image-id="${selectedImageId}"]`);
+  if (canvasEl?._fabric) {
+    const canvas = canvasEl._fabric;
+    const rect = canvas.getObjects('rect')[0];
+    if (rect) {
+      // 🔄 Update rect values so it doesn't visually reset
+      rect.set({
+        left: overlayData.left,
+        top: overlayData.top,
+        width: overlayData.width,
+        height: overlayData.height,
+        angle: overlayData.angle
+      });
+      canvas.renderAll();
+    }
+  }
+ 
   alert("Parameters applied successfully!");
+ 
 });
 
 
