@@ -1,35 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View Student Simulation</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
   <style>
+    /* 🎯 EXACT SAME STYLES AS STUDENT SIMULATION.HTML */
+    .image-container {
+      position: relative;
+      height: 256px;
+      width: 256px; /* 🎯 Fixed width to match height */
+      overflow: visible !important;
+      border-radius: 0.375rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #afb1b3; 
+      border-radius: 0.375rem;
+      overflow: hidden;
+      border: 1px solid #202020;
+      margin: 0 auto; /* Center the container */
+    }
     
-    .overlayCanvas {
+    .overlay-canvas {
       position: absolute;
       top: 0;
       left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none; /* 🔒 Read-only for lecturer */
       z-index: 10;
-      pointer-events: none;
+    }
+    
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      position: relative; 
+      z-index: 1;
     }
 
+    .image-viewer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      justify-items: center; /* Center each grid item */
+    }
+
+    @media (max-width: 768px) {
+      .image-viewer-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .image-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+      z-index: 10;
+    }
+    
+    .image-info {
+      padding: 0.75rem;
+      background-color: #f3f4f6;
+      font-size: 0.75rem;
+    }
+
+    /* 🎯 Make sure the card doesn't stretch */
+    .image-card {
+      width: fit-content;
+      margin: 0 auto;
+    }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-  <div class="max-w-6xl mx-auto bg-white p-6 rounded shadow">
-    <h2 class="text-2xl font-bold mb-6">Student Simulation Viewer (Read-Only)</h2>
-    <div id="simulationViewer" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"></div>
+<body class="min-h-screen bg-gray-50 p-4 bg-cover bg-center bg-no-repeat" style="background-image: url('../picture/simulationpage.jpg')">
+  
+  <header class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Student Simulation Viewer (Read-Only)</h1>
+    <button onclick="window.history.back()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md">
+      ← Back to Dashboard
+    </button>
+  </header>
 
-    <div class="mt-6">
-      <h3 class="text-lg font-semibold mb-2">Leave Feedback</h3>
-      <textarea id="comment" class="w-full p-3 border rounded mb-2" placeholder="Write your feedback here..."></textarea>
-      <input type="number" id="mark" class="w-full p-3 border rounded mb-2" placeholder="Enter score/mark" />
-      <button id="sendFeedback" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Submit Feedback</button>
+  <main class="grid grid-cols-1 lg:grid-cols-1 gap-6">
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-lg shadow-md p-4">
+        <h2 class="text-xl font-semibold mb-4">Student's Image Configurations</h2>
+        <div class="image-viewer-grid" id="imageViewer">
+          <!-- Images will be dynamically inserted here -->
+        </div>
+      </div>
     </div>
-  </div>
+
+    <!-- Feedback Section -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-lg shadow-md p-4">
+        <h3 class="text-lg font-semibold mb-4">Leave Feedback</h3>
+        <textarea id="comment" class="w-full p-3 border rounded mb-4" rows="4" placeholder="Write your feedback here..."></textarea>
+        <input type="number" id="mark" class="w-full p-3 border rounded mb-4" placeholder="Enter score/mark (0-100)">
+        <button id="sendFeedback" class="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          Submit Feedback
+        </button>
+      </div>
+    </div>
+  </main>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
@@ -45,121 +126,183 @@
 
     function createImageCard(data) {
       const container = document.createElement('div');
-      container.className = 'bg-gray-50 border rounded shadow-sm p-2';
+      container.className = 'bg-white rounded-lg shadow overflow-hidden image-card'; /* 🎯 Added image-card class */
 
       const geom = data.parameters.geometry;
       const seq = data.parameters.sequence;
 
+      // 🎯 EXACT SAME STRUCTURE AS STUDENT VIEW - FIXED CONTAINER SIZE
       container.innerHTML = `
-        <h4 class="font-semibold text-sm mb-1">${data.imageName}</h4>
-        <div class="relative w-full h-48 bg-white rounded overflow-hidden">
-          <img id="img-${data.imageId}" src="/cardic/${data.imageName.replace(/ /g, '_')}_thumb.jpg" class="w-full h-full object-contain" />
-          <canvas class="overlayCanvas w-full h-full" data-id="${data.imageId}"></canvas>
+        <div id="${data.imageId}" class="image-container">
+          <div class="image-label">${data.imageName}</div>
+          <div class="relative w-full h-full flex">
+            <img src="http://localhost:5001/cardic/${data.imageName.replace(/ /g, '_')}_thumb.jpg" 
+                 alt="${data.imageName}" 
+                 class="w-full h-full object-cover z-0" 
+                 onerror="this.src='/placeholder.svg?height=256&width=256'">
+            <canvas class="overlay-canvas absolute top-0 left-0 w-full h-full z-10" data-image-id="${data.imageId}"></canvas>
+          </div>
         </div>
-        <div class="text-xs text-gray-700 mt-2 space-y-1">
-          <p><strong>FOV:</strong> ${geom.fov} mm</p>
-          <p><strong>Matrix Size:</strong> ${geom.matrixSize}</p>
-          <p><strong>Slice Thickness:</strong> ${geom.sliceThickness} mm</p>
-          <p><strong>Slice Gap:</strong> ${geom.sliceGap} mm</p>
-          <p><strong>Plane Orientation:</strong> ${geom.planeOrientation}</p>
-          <p><strong>Fold Over Direction:</strong> ${geom.foldoverDirection}</p>
-          <p><strong>TR:</strong> ${seq.tr} ms</p>
-          <p><strong>TE:</strong> ${seq.te} ms</p>
-          <p><strong>Flip Angle:</strong> ${seq.flipAngle}°</p>
-          <p><strong>Pulse Sequence:</strong> ${seq.pulseSequence}</p>
-          <p><strong>Overlay:</strong> L: ${data.overlay?.left ?? 'N/A'}, T: ${data.overlay?.top ?? 'N/A'}, W: ${data.overlay?.width ?? 'N/A'}, H: ${data.overlay?.height ?? 'N/A'}, A: ${data.overlay?.angle ?? 'N/A'}</p>
+        <div class="image-info">
+          <div class="flex justify-between">
+            <span>FOV: ${geom.fov}mm</span>
+            <span>Matrix: ${geom.matrixSize}</span>
+          </div>
+          <div class="flex justify-between mt-1">
+            <span>TR: ${seq.tr}ms</span>
+            <span>TE: ${seq.te}ms</span>
+          </div>
+          <div class="flex justify-between mt-1">
+            <span>Thickness: ${geom.sliceThickness}mm</span>
+            <span>Angle: ${seq.flipAngle}°</span>
+          </div>
+          <div class="mt-1"><strong>Sequence:</strong> ${seq.pulseSequence}</div>
+          <div><strong>Orientation:</strong> ${geom.planeOrientation}</div>
         </div>
       `;
 
       return container;
     }
 
-    function renderOverlay(canvasEl, overlay, imageEl) {
-  const parent = imageEl.parentElement;
-  parent.style.position = 'relative';
+    // Replace the entire setupCanvasOverlay function with this EXACT copy from simulation.html:
+    function setupCanvasOverlay(canvasEl, overlayData = null) {
+      const parent = canvasEl.parentElement;
+      const img = parent.querySelector('img');
 
-  const drawOverlay = () => {
-    const renderedWidth = imageEl.clientWidth;
-    const renderedHeight = imageEl.clientHeight;
+      console.log('Setting up overlay for:', img?.src);
+      console.log('Overlay data received:', overlayData); // 🎯 DEBUG
 
-    // Set canvas size to match rendered image
-    canvasEl.width = renderedWidth;
-    canvasEl.height = renderedHeight;
-    canvasEl.style.width = `${renderedWidth}px`;
-    canvasEl.style.height = `${renderedHeight}px`;
-    canvasEl.style.left = '0px';
-    canvasEl.style.top = '0px';
+      img.onload = () => {
+        console.log('Image loaded:', img.src);
+        setTimeout(() => {
+          const width = img.clientWidth;
+          const height = img.clientHeight;
 
-    const canvas = new fabric.Canvas(canvasEl, {
-      selection: false,
-      preserveObjectStacking: true,
-      backgroundColor: null
-    });
+          console.log('Image dimensions:', width, height);
 
-    if (overlay) {
-      const rect = new fabric.Rect({
-        left: overlay.left,
-        top: overlay.top,
-        width: overlay.width,
-        height: overlay.height,
-        angle: overlay.angle,
-        fill: 'transparent',
-        stroke: 'blue',
-        strokeWidth: 2,
-        selectable: false,
-        hasControls: false,
-        hasBorders: false,
-        originX: 'left',
-        originY: 'top'
-      });
+          if (!width || !height) {
+            console.warn('Image dimensions not available yet');
+            return;
+          }
 
-      canvas.add(rect);
-      canvas.renderAll();
+          canvasEl.width = width;
+          canvasEl.height = height;
+         
+          const canvas = new fabric.Canvas(canvasEl, {
+            selection: false,
+            backgroundColor: null,
+            preserveObjectStacking: true
+          });
+
+          const size = Math.min(width, height) * 0.9; 
+
+          const rect = new fabric.Rect({
+            left: overlayData?.left ?? (width - size) / 2,
+            top: overlayData?.top ?? (height - size) / 2,
+            width: overlayData?.width ?? size,
+            height: overlayData?.height ?? size,
+            angle: overlayData?.angle ?? 0,
+            fill: 'transparent',
+            stroke: 'blue',
+            strokeWidth: 2,
+            hasRotatingPoint: false,      // 🔒 Read-only
+            cornerColor: 'blue',
+            transparentCorners: false,
+            lockUniScaling: true,
+            selectable: false,            // 🔒 Read-only
+            hasControls: false,           // 🔒 Read-only
+            hasBorders: true
+          });
+
+          canvas.add(rect);
+          canvas.setWidth(width);
+          canvas.setHeight(height);
+          canvas.renderAll();
+
+          canvasEl._fabric = canvas;
+          console.log('Overlay rectangle added to canvas with data:', {
+            left: rect.left,
+            top: rect.top,
+            width: rect.width,
+            height: rect.height,
+            angle: rect.angle
+          });
+        }, 100); // 🎯 Increased timeout to 100ms
+      };
+
+      if (img.complete && img.naturalHeight !== 0) {
+        console.log('Manually triggering image.onload for cached image');
+        img.onload();
+      }
     }
-  };
-
-  if (imageEl.complete && imageEl.naturalHeight !== 0) {
-    drawOverlay();
-  } else {
-    imageEl.onload = drawOverlay;
-  }
-}
 
     async function init() {
-      const data = await fetchStudentImages();
-      const viewer = document.getElementById('simulationViewer');
-      viewer.innerHTML = '';
+      try {
+        const data = await fetchStudentImages();
+        const viewer = document.getElementById('imageViewer');
+        viewer.innerHTML = '';
 
-      data.forEach(d => {
-        const card = createImageCard(d);
-        viewer.appendChild(card);
+        console.log('Fetched student data:', data); // 🎯 DEBUG
 
-        const canvasEl = card.querySelector('canvas');
-        const imgEl = card.querySelector('img');
-        renderOverlay(canvasEl, d.overlay, imgEl);
-      });
+        data.forEach(d => {
+          console.log('Processing image:', d.imageName);
+          console.log('Overlay data for', d.imageName, ':', d.overlay); // 🎯 DEBUG
+          
+          const card = createImageCard(d);
+          viewer.appendChild(card);
+
+          const canvasEl = card.querySelector('.overlay-canvas');
+          console.log('Canvas element found:', !!canvasEl); // 🎯 DEBUG
+          
+          // Use multiple attempts to ensure DOM is ready
+          setTimeout(() => {
+            setupCanvasOverlay(canvasEl, d.overlay);
+          }, 100);
+          
+          requestAnimationFrame(() => {
+            setupCanvasOverlay(canvasEl, d.overlay);
+          });
+        });
+      } catch (error) {
+        console.error('Error initializing:', error);
+      }
     }
 
     document.getElementById('sendFeedback').addEventListener('click', async () => {
       const comment = document.getElementById('comment').value;
       const mark = document.getElementById('mark').value;
 
-      const res = await fetch('http://localhost:5001/api/lecturer/comment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ studentId, comment, mark })
-      });
+      if (!comment.trim()) {
+        alert('Please enter a comment');
+        return;
+      }
 
-      if (res.ok) {
-        alert('Feedback sent successfully!');
-        document.getElementById('comment').value = '';
-        document.getElementById('mark').value = '';
-      } else {
-        const data = await res.json();
-        alert('Failed to send feedback: ' + data.message);
+      if (!mark || isNaN(mark)) {
+        alert('Please enter a valid mark');
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:5001/api/lecturer/comment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ studentId, comment, mark: Number(mark) })
+        });
+
+        if (res.ok) {
+          alert('Feedback sent successfully!');
+          document.getElementById('comment').value = '';
+          document.getElementById('mark').value = '';
+        } else {
+          const data = await res.json();
+          alert('Failed to send feedback: ' + data.message);
+        }
+      } catch (error) {
+        console.error('Error sending feedback:', error);
+        alert('Error sending feedback');
       }
     });
 

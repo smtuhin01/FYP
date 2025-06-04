@@ -687,18 +687,49 @@ const rect = new fabric.Rect({
     }
 function getOverlayDataForImage(imageId) {
   const canvasEl = document.querySelector(`[data-image-id="${imageId}"]`);
-
   const canvas = canvasEl?._fabric;
   if (!canvas) return null;
-   canvas.renderAll();
+   
+  canvas.renderAll();
   const rect = canvas.getObjects('rect')[0];
   if (!rect) return null;
 
+  // Get the actual displayed image area (not container)
+  const parent = canvasEl.parentElement;
+  const img = parent.querySelector('img');
+  
+  // Calculate the actual displayed image dimensions
+  const containerWidth = parent.clientWidth;
+  const containerHeight = parent.clientHeight;
+  const imgNaturalWidth = img.naturalWidth;
+  const imgNaturalHeight = img.naturalHeight;
+  
+  const containerAspect = containerWidth / containerHeight;
+  const imageAspect = imgNaturalWidth / imgNaturalHeight;
+  
+  let displayedWidth, displayedHeight, offsetX, offsetY;
+  
+  if (imageAspect > containerAspect) {
+    displayedWidth = containerWidth;
+    displayedHeight = containerWidth / imageAspect;
+    offsetX = 0;
+    offsetY = (containerHeight - displayedHeight) / 2;
+  } else {
+    displayedWidth = containerHeight * imageAspect;
+    displayedHeight = containerHeight;
+    offsetX = (containerWidth - displayedWidth) / 2;
+    offsetY = 0;
+  }
+
+  // Convert to percentages relative to the displayed image area
+  const relativeLeft = rect.left - offsetX;
+  const relativeTop = rect.top - offsetY;
+  
   return {
-    left: rect.left,
-    top: rect.top,
-    width: rect.width * rect.scaleX,
-    height: rect.height * rect.scaleY,
+    leftPercent: (relativeLeft / displayedWidth) * 100,
+    topPercent: (relativeTop / displayedHeight) * 100,
+    widthPercent: ((rect.width * rect.scaleX) / displayedWidth) * 100,
+    heightPercent: ((rect.height * rect.scaleY) / displayedHeight) * 100,
     angle: rect.angle
   };
 }
@@ -942,6 +973,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();             
 });
 
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+const debouncedSave = debounce(saveParameters, 1000);
   </script>
 </body>
 </html>
