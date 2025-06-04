@@ -40,3 +40,16 @@ exports.getUserImageParameters = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch parameters', details: err.message });
   }
 };
+
+const validateOverlay = (overlay) => {
+  if (!overlay) return true; // Optional field
+  
+  const required = ['left', 'top', 'width', 'height'];
+  const missing = required.filter(field => overlay[field] === undefined);
+  
+  if (missing.length > 0) {
+    throw new Error(`Missing overlay fields: ${missing.join(', ')}`);
+  }
+  
+  return true;
+};
