@@ -13,22 +13,25 @@
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.3.5",
-    "nodemailer": "^6.9.12"
+    "mongodb": "^6.17.0",
+    "mongoose": "^8.15.1",
+    "multer": "^2.0.1",
+    "multer-gridfs-storage": "^5.0.2",
+    "nodemailer": "^6.9.12",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
   },
   "overlay": {
-  "left": 123,
-  "top": 90,
-  "width": 180,
-  "height": 120,
-  "angle": 0
-}
-
-  
+    "left": 123,
+    "top": 90,
+    "width": 180,
+    "height": 120,
+    "angle": 0
+  }
 }

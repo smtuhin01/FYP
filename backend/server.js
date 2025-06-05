@@ -1,12 +1,12 @@
 const express = require('express');
-const dotenv = require('dotenv');
+require('dotenv').config();
 const path = require('path');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const parameterRoutes = require('./routes/parameterRoutes');
 const lecturerRoutes = require('./routes/lecturerRoutes');
-dotenv.config();
+const adminRoutes = require('./routes/adminRoutes'); // Import adminRoutes
 connectDB();
 
 const app = express();
@@ -26,6 +26,7 @@ app.get('/lecturer-login.html', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/parameters', parameterRoutes);
 app.use('/api/lecturer', lecturerRoutes);
+app.use('/api/admin', adminRoutes); // Use adminRoutes
 //  Default route to home.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'home.html'));
