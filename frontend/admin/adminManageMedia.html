@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Media</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-6">
+  <h1 class="text-2xl font-bold mb-4">Manage Media</h1>
+
+  <form id="mediaForm" class="mb-6 grid grid-cols-2 gap-4" enctype="multipart/form-data">
+    <input type="text" id="title" placeholder="Title" class="px-3 py-2 border rounded" required>
+    <select id="category" class="px-3 py-2 border rounded">
+      <option value="Brain">Brain</option>
+      <option value="Spine">Spine</option>
+      <option value="Abdominal">Abdominal</option>
+      <option value="Cardiac">Cardiac</option>
+    </select>
+    <select id="type" class="px-3 py-2 border rounded">
+      <option value="image">Image</option>
+      <option value="video">Video</option>
+    </select>
+    <input type="file" id="file" class="px-3 py-2 border rounded" required>
+    <button type="submit" class="col-span-2 bg-blue-600 text-white py-2 rounded">Upload Media</button>
+  </form>
+
+  <div>
+    <h2 class="text-xl font-semibold mb-2">Uploaded Media</h2>
+    <div id="mediaList" class="space-y-2"></div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+
+    async function loadMedia() {
+      const res = await fetch('/api/media', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const media = await res.json();
+      const list = document.getElementById('mediaList');
+      list.innerHTML = '';
+      media.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-4 bg-white rounded shadow flex justify-between items-center';
+        div.innerHTML = `<div><strong>${item.title}</strong> (${item.category})<br><small>${item.type}</small></div>
+                         <button onclick="deleteMedia('${item._id}')" class="bg-red-500 text-white px-3 py-1 rounded">Delete</button>`;
+        list.appendChild(div);
+      });
+    }
+
+    async function deleteMedia(id) {
+      await fetch(`/api/media/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      loadMedia();
+    }
+
+    document.getElementById('mediaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('title', document.getElementById('title').value);
+      formData.append('category', document.getElementById('category').value);
+      formData.append('type', document.getElementById('type').value);
+      formData.append('file', document.getElementById('file').files[0]);
+
+      await fetch('/api/media', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+
+      loadMedia();
+      e.target.reset();
+    });
+
+    loadMedia();
+  </script>
+</body>
+</html>
