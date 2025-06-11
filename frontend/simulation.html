@@ -161,6 +161,34 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .chat-message {
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    
+    .user-message {
+        background-color: #3B82F6;
+        color: white;
+    }
+    
+    .assistant-message {
+        background-color: #F3F4F6;
+        color: #1F2937;
+    }
+    
+    #chatMessages::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    #chatMessages::-webkit-scrollbar-track {
+        background: #F3F4F6;
+    }
+    
+    #chatMessages::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 3px;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-gray-50 p-4 bg-cover bg-center bg-no-repeat" style="background-image: url('./picture/simulationpage.jpg')">
@@ -357,12 +385,58 @@
     </div>
   </main>
 
-  <footer class="mt-8 flex justify-end">
-    <button id="logoutBtn" class="bg-gray-700 hover:bg-black text-white px-4 py-2 rounded-md">
-  Logout
-</button>
+  <footer class="mt-8 flex justify-end gap-4 items-center">
+  <button id="assistantBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+    </svg>
+    MRI Assistant
+  </button>
+  <button id="logoutBtn" class="bg-gray-700 hover:bg-black text-white px-4 py-2 rounded-md">
+    Logout
+  </button>
+</footer>
 
-  </footer>
+  <!-- AI Assistant Chat Window -->
+<div id="chatbot" class="fixed bottom-4 right-4 w-96 bg-white rounded-lg shadow-xl transition-transform duration-200 transform translate-y-0 z-50 hidden" style="height: 500px;">
+  <div class="flex justify-between items-center p-4 border-b border-gray-200">
+    <div class="flex items-center">
+      <svg class="w-6 h-6 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+      <h3 class="text-lg font-semibold">MRI Assistant</h3>
+    </div>
+    <div class="flex gap-2">
+      <button id="minimizeChatbot" class="text-gray-500 hover:text-gray-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <div id="chatMessages" class="p-4 space-y-4 overflow-y-auto" style="height: 380px;">
+    <!-- Messages will appear here -->
+  </div>
+  
+  <div class="border-t border-gray-200 p-4">
+    <form id="chatForm" class="flex gap-2">
+      <input type="text" id="chatInput" class="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ask about MRI parameters...">
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Minimized Chat Button -->
+<button id="openChatbot" class="fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full shadow-lg hidden hover:bg-blue-600">
+  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+  </svg>
+</button>
 
   <script>
     function parseJwt(token) {
@@ -568,7 +642,8 @@ function setupCanvasOverlay(canvasEl, overlayData = null) {
       });
 
 const size = Math.min(width, height)* 0.9; 
-
+const safeLeft = Math.max(0, Math.min(width - (overlayData?.width || size), overlayData?.left ?? (width - size) / 2));
+const safeTop = Math.max(0, Math.min(height - (overlayData?.height || size), overlayData?.top ?? (height - size) / 2));
 const rect = new fabric.Rect({
   left: overlayData?.left ?? (width - size) / 2,
   top: overlayData?.top ?? (height - size) / 2,
@@ -585,6 +660,36 @@ const rect = new fabric.Rect({
 });
 
       canvas.add(rect);
+rect.originalLeft = rect.left;
+    rect.originalTop = rect.top;
+    rect.originalScaleX = rect.scaleX;
+    rect.originalScaleY = rect.scaleY;
+
+    canvasOverlays[canvasEl] = {
+      canvas,
+      originalWidth: width,
+      originalHeight: height
+    };
+      
+canvas.on('object:moving', function (e) {
+  const obj = e.target;
+
+  obj.setCoords(); // Update object's coordinates
+
+  const objWidth = obj.getScaledWidth();
+  const objHeight = obj.getScaledHeight();
+  const canvasWidth = canvas.getWidth();
+  const canvasHeight = canvas.getHeight();
+
+  // Clamp the position
+  if (obj.left < 0) obj.left = 0;
+  if (obj.top < 0) obj.top = 0;
+  if (obj.left + objWidth > canvasWidth) obj.left = canvasWidth - objWidth;
+  if (obj.top + objHeight > canvasHeight) obj.top = canvasHeight - objHeight;
+
+  obj.setCoords(); // Make sure new coords are updated
+});
+
       canvas.setWidth(width);
       canvas.setHeight(height);
       canvas.renderAll();
@@ -600,7 +705,39 @@ const rect = new fabric.Rect({
     img.onload();
   }
 }
+const canvasOverlays = {}; // Store overlay data by canvasEl
 
+function rescaleCanvas(canvasEl) {
+  const canvas = canvasEl._fabric;
+  const img = canvasEl.parentElement.querySelector('img');
+  if (!canvas || !img) return;
+
+  const newWidth = img.clientWidth;
+  const newHeight = img.clientHeight;
+  const overlayInfo = canvasOverlays[canvasEl];
+
+  if (!overlayInfo) return;
+
+  const scaleX = newWidth / overlayInfo.originalWidth;
+  const scaleY = newHeight / overlayInfo.originalHeight;
+
+  canvas.setWidth(newWidth);
+  canvas.setHeight(newHeight);
+
+  canvas.getObjects().forEach(obj => {
+    obj.set({
+      left: obj.originalLeft * scaleX,
+      top: obj.originalTop * scaleY,
+      scaleX: obj.originalScaleX * scaleX,
+      scaleY: obj.originalScaleY * scaleY
+    }).setCoords();
+  });
+
+  canvas.renderAll();
+}
+window.addEventListener('resize', () => {
+    document.querySelectorAll('.overlay-canvas').forEach(rescaleCanvas);
+  });
     // Render the sequence list
     function renderSequenceList() {
       sequenceList.innerHTML = '';
@@ -811,7 +948,69 @@ function getOverlayDataForImage(imageId) {
           notificationPanel.classList.remove('show');
         }
       });
-    }
+    
+    // Initialize chatbot
+    initChatbot();
+    
+    // Add chat form submission handler
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // Add user message
+        addMessageToChat('user', message);
+        chatInput.value = '';
+
+        try {
+            const selectedImage = images.find(img => img.id === selectedImageId);
+            const currentParams = getParametersFromForm();
+            
+            console.log('Sending request with:', {
+                message,
+                currentParams,
+                imageName: selectedImage?.name || '',
+                sequenceType: currentParams.sequence.pulseSequence
+            });
+
+            const response = await fetch('http://localhost:5001/api/assistant/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    message,
+                    currentParams,
+                    imageName: selectedImage?.name || '',
+                    sequenceType: currentParams.sequence.pulseSequence
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Received response:', data);
+
+            if (data && data.response) {
+                addMessageToChat('assistant', data.response);
+                if (data.suggestedParams) {
+                    highlightSuggestedParameters(data.suggestedParams);
+                }
+            } else {
+                throw new Error('Invalid response format');
+            }
+        } catch (error) {
+            console.error('Chat error:', error);
+            addMessageToChat('assistant', 'Sorry, I encountered an error. Please try again.');
+        }
+    });
+}
 
   async function loadNotifications() {
   const token = localStorage.getItem('token');
@@ -935,13 +1134,87 @@ selectedImage.overlay = overlayData;
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-  await loadNotifications();          
-  await loadSavedParameters();       
-  renderImages();                     
-  renderSequenceList();               
-  setupEventListeners();             
+    await loadNotifications();          
+    await loadSavedParameters();       
+    renderImages();                     
+    renderSequenceList();               
+    setupEventListeners();  // This will now initialize the chatbot           
 });
+function initChatbot() {
+    const chatbot = document.getElementById('chatbot');
+    const openChatbot = document.getElementById('openChatbot');
+    const minimizeChatbot = document.getElementById('minimizeChatbot');
+    const assistantBtn = document.getElementById('assistantBtn');
+    const chatMessages = document.getElementById('chatMessages');
 
+    // Initially hide the chatbot
+    chatbot.classList.add('hidden');
+    openChatbot.classList.add('hidden');
+
+    // Show chatbot when assistant button is clicked
+    assistantBtn.addEventListener('click', () => {
+        console.log('Assistant button clicked'); // Debug
+        chatbot.classList.remove('hidden');
+        
+        // Add welcome message if chat is empty
+        if (!chatMessages.children.length) {
+            addMessageToChat('assistant', 
+                'Hello! I can help you with:\n' +
+                'Parameter recommendations\n' +
+                'Slice positioning advice\n' +
+                'Artifact prevention\n' +
+                'Parameter validation\n\n' +
+                'What would you like to know?'
+            );
+        }
+    });
+
+    // Minimize chatbot
+    minimizeChatbot.addEventListener('click', () => {
+        chatbot.classList.add('hidden');
+        openChatbot.classList.remove('hidden');
+    });
+
+    // Show chatbot when minimized button is clicked
+    openChatbot.addEventListener('click', () => {
+        chatbot.classList.remove('hidden');
+        openChatbot.classList.add('hidden');
+    });
+}
+// Add this helper function for adding messages to chat
+function addMessageToChat(sender, message) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageEl = document.createElement('div');
+    messageEl.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
+    
+    // Format the message text (replace \n with <br> for line breaks)
+    const formattedMessage = message.replace(/\n/g, '<br>');
+    
+    messageEl.innerHTML = `
+        <div class="${sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'} rounded-lg px-4 py-2 max-w-[80%]">
+            ${formattedMessage}
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Add this helper function for highlighting suggested parameters
+function highlightSuggestedParameters(suggestedParams) {
+    for (const [key, value] of Object.entries(suggestedParams)) {
+        const input = document.getElementById(key);
+        if (input) {
+            input.classList.add('ring-2', 'ring-yellow-400');
+            input.title = `Suggested value: ${value}`;
+            
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+                input.classList.remove('ring-2', 'ring-yellow-400');
+            }, 3000);
+        }
+    }
+}
   </script>
 </body>
 </html>
