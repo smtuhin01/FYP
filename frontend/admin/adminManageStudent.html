@@ -228,6 +228,9 @@
               ${student.email}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button class="text-green-600 hover:text-green-900 mr-4 view-btn" data-id="${student._id}">
+                View Portal
+              </button>
               <button class="text-blue-600 hover:text-blue-900 mr-4 edit-btn" data-id="${student._id}" data-name="${student.name}" data-email="${student.email}">
                 Edit
               </button>
@@ -260,6 +263,14 @@
               const id = this.getAttribute('data-id');
               await deleteStudent(id);
             }
+          });
+        });
+        
+        document.querySelectorAll('.view-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            // Redirect to student simulation page with the student ID
+            window.location.href = `/simulation.html?userId=${id}&mode=admin`;
           });
         });
         
