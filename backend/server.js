@@ -2,11 +2,13 @@ const express = require('express');
 require('dotenv').config();
 const path = require('path');
 const cors = require('cors');
+const multer = require('multer'); // Add this import
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const parameterRoutes = require('./routes/parameterRoutes');
 const lecturerRoutes = require('./routes/lecturerRoutes');
 const adminRoutes = require('./routes/adminRoutes'); // Import adminRoutes
+const assistantRoutes = require('./routes/assistantRoutes'); // Import assistantRoutes
 connectDB();
 
 const app = express();
@@ -27,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/parameters', parameterRoutes);
 app.use('/api/lecturer', lecturerRoutes);
 app.use('/api/admin', adminRoutes); // Use adminRoutes
+app.use('/api/assistant', assistantRoutes); // Use assistantRoutes
 //  Default route to home.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'home.html'));

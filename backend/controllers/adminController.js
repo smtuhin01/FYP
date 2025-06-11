@@ -191,33 +191,38 @@ exports.deleteLecturer = async (req, res) => {
 
 // Upload media
 exports.uploadMedia = async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No file uploaded' });
-  }
-
   try {
-    const { name, description, category, mediaType, parameters } = req.body;
-    
-    // Create thumbnail name (adding _thumb to filename)
-    const filenameParts = req.file.filename.split('.');
-    const ext = filenameParts.pop();
-    const basename = filenameParts.join('.');
-    const thumbnailFilename = `${basename}_thumb.${ext}`;
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
 
+    const { name, category, mediaType, parameters } = req.body;
+
+    // Validate required fields
+    if (!name || !category || !mediaType) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Create media document
     const media = await Media.create({
       name,
-      description,
       category,
       mediaType,
       filename: req.file.filename,
       fileId: req.file.id,
-      thumbnailFilename,
-      parameters: parameters ? JSON.parse(parameters) : {}
+      parameters: parameters ? JSON.parse(parameters) : DEFAULT_MRI_PARAMETERS
     });
 
-    res.status(201).json(media);
+    res.status(201).json({
+      success: true,
+      data: media
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Media upload error:', error);
+    res.status(500).json({ 
+      message: 'Error uploading media',
+      error: error.message 
+    });
   }
 };
 
