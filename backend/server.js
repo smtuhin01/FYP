@@ -32,6 +32,27 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'home.html'));
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        message: 'File is too large. Maximum size is 10MB'
+      });
+    }
+    return res.status(400).json({
+      message: 'File upload error'
+    });
+  }
+  
+  res.status(500).json({
+    message: 'Internal server error',
+    error: err.message
+  });
+});
+
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`✅ Server is running at http://localhost:${PORT}`);

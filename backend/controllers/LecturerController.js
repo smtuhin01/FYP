@@ -110,11 +110,34 @@ const getNotifications = async (req, res) => {
   }
 };
 
+// Reset password
+const resetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+  
+  try {
+    const lecturer = await Lecturer.findOne({ email });
+    
+    if (!lecturer) {
+      return res.status(404).json({ message: 'Lecturer not found with this email' });
+    }
+    
+    // Update password
+    lecturer.password = newPassword;
+    await lecturer.save(); 
+    
+    res.status(200).json({ message: 'Password reset successful' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ message: 'Error resetting password', error: err.message });
+  }
+};
 
+// Add to exports
 module.exports = {
   register,
   login,
   getAllStudents,
   commentOnStudent,
-  getNotifications
+  getNotifications,
+  resetPassword  // Add this
 };
