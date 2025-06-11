@@ -1,11 +1,6 @@
 const ImageParameter = require('../models/ImageParameter');
-const OpenAI = require('openai');
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
+// MRI sequence recommendations
 const MRI_RECOMMENDATIONS = {
   'T1-Weighted': {
     tr: { min: 300, max: 800, ideal: 500 },
@@ -38,54 +33,16 @@ const MRI_RECOMMENDATIONS = {
 };
 
 const generateResponse = async (message, currentParams, imageName, sequenceType) => {
-  // First get standard response
-  const standardResponse = getStandardResponse(message, currentParams, sequenceType);
-
-  try {
-    // Call ChatGPT API with updated client
-    const chatGPTResponse = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{
-        role: "system",
-        content: "You are an expert MRI technologist assistant. Provide detailed, technical, yet understandable answers about MRI parameters, protocols, and best practices."
-      }, {
-        role: "user",
-        content: `Help with this MRI question in context of these parameters:
-        Question: ${message}
-        Current parameters:
-        - Sequence Type: ${sequenceType}
-        - TR: ${currentParams.sequence.tr}ms
-        - TE: ${currentParams.sequence.te}ms
-        - Flip Angle: ${currentParams.sequence.flipAngle}°
-        - FOV: ${currentParams.geometry.fov}mm
-        - Matrix Size: ${currentParams.geometry.matrixSize}
-        - Slice Thickness: ${currentParams.geometry.sliceThickness}mm
-        - Image Type: ${imageName}`
-      }]
-    });
-
-    // Update response handling for new OpenAI client
-    return {
-      response: `${standardResponse.response}\n\nAdditional insights from ChatGPT:\n${chatGPTResponse.choices[0].message.content}`,
-      suggestedParams: standardResponse.suggestedParams
-    };
-
-  } catch (error) {
-    console.error('ChatGPT API error:', error);
-    // Fallback to standard response if ChatGPT fails
-    return standardResponse;
-  }
+  return getStandardResponse(message, currentParams, sequenceType);
 };
 
-// Rename existing generateResponse to getStandardResponse
-const getStandardResponse = (msg, currentParams, sequenceType) => {
-  // Move existing response logic here
-  const message = msg.toLowerCase();
+const getStandardResponse = (message, currentParams, sequenceType) => {
+  const msg = message.toLowerCase();
 
-  // Check for parameter recommendations
-  if (message.includes('recommend') || message.includes('suggestion') || 
-      message.includes('optimal') || message.includes('parameter') || 
-      message.includes('settings')) {
+  // Parameter recommendations
+  if (msg.includes('recommend') || msg.includes('suggestion') || 
+      msg.includes('optimal') || msg.includes('parameter') || 
+      msg.includes('settings')) {
     const sequence = MRI_RECOMMENDATIONS[sequenceType];
     if (sequence) {
       return {
@@ -103,9 +60,9 @@ const getStandardResponse = (msg, currentParams, sequenceType) => {
     }
   }
 
-  // Check for slice positioning advice
-  if (message.includes('slice') || message.includes('position') || 
-      message.includes('overlay')) {
+  // Slice positioning advice
+  if (msg.includes('slice') || msg.includes('position') || 
+      msg.includes('overlay')) {
     return {
       response: "For optimal slice positioning:\n" +
         "1. Center the overlay box on your target anatomy\n" +
@@ -115,8 +72,8 @@ const getStandardResponse = (msg, currentParams, sequenceType) => {
     };
   }
 
-  // Check for artifact prevention
-  if (message.includes('artifact') || message.includes('quality')) {
+  // Artifact prevention
+  if (msg.includes('artifact') || msg.includes('quality')) {
     return {
       response: "To minimize artifacts:\n" +
         "1. Use appropriate FOV (too small can cause wrap-around)\n" +
@@ -126,7 +83,7 @@ const getStandardResponse = (msg, currentParams, sequenceType) => {
     };
   }
 
-  // Default response for unrecognized queries
+  // Default response
   return {
     response: "I can help you with:\n" +
       "• Parameter recommendations\n" +
@@ -137,60 +94,10 @@ const getStandardResponse = (msg, currentParams, sequenceType) => {
   };
 };
 
-const validateParameters = (params) => {
-  const issues = [];
-  const { geometry, sequence } = params;
-
-  // Geometry validation
-  if (geometry.fov < 100 || geometry.fov > 500) {
-    issues.push("⚠️ FOV should be between 100-500mm");
-  }
-  if (geometry.sliceThickness < 0.5 || geometry.sliceThickness > 10) {
-    issues.push("⚠️ Slice thickness should be between 0.5-10mm");
-  }
-  if (geometry.sliceGap >= geometry.sliceThickness) {
-    issues.push("⚠️ Slice gap should be less than slice thickness");
-  }
-
-  // Sequence validation
-  const recommendations = MRI_RECOMMENDATIONS[sequence.pulseSequence];
-  if (recommendations) {
-    if (sequence.tr < recommendations.tr?.min || sequence.tr > recommendations.tr?.max) {
-      issues.push(`⚠️ TR should be between ${recommendations.tr.min}-${recommendations.tr.max}ms for ${sequence.pulseSequence}`);
-    }
-    if (sequence.te < recommendations.te?.min || sequence.te > recommendations.te?.max) {
-      issues.push(`⚠️ TE should be between ${recommendations.te.min}-${recommendations.te.max}ms for ${sequence.pulseSequence}`);
-    }
-  }
-
-  return issues;
-};
-
-const getOptimalParameters = (sequenceType) => {
-  const recommendations = MRI_RECOMMENDATIONS[sequenceType];
-  if (!recommendations) return null;
-
-  return {
-    tr: recommendations.tr?.ideal,
-    te: recommendations.te?.ideal,
-    flipAngle: recommendations.flipAngle?.ideal
-  };
-};
-
 exports.chat = async (req, res) => {
   try {
     const { message, currentParams, imageName, sequenceType } = req.body;
-    
-    console.log('Received request:', {
-      message,
-      currentParams,
-      imageName,
-      sequenceType
-    });
-
     const response = await generateResponse(message, currentParams, imageName, sequenceType);
-    
-    console.log('Sending response:', response);
     res.json(response);
   } catch (error) {
     console.error('Assistant error:', error);
