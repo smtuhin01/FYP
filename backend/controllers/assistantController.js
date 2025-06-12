@@ -1,6 +1,7 @@
 const ImageParameter = require('../models/ImageParameter');
+const axios = require('axios');
 
-// MRI sequence recommendations
+// MRI sequence recommendations - keep as a fallback
 const MRI_RECOMMENDATIONS = {
   'T1-Weighted': {
     tr: { min: 300, max: 800, ideal: 500 },
@@ -32,10 +33,147 @@ const MRI_RECOMMENDATIONS = {
   }
 };
 
+// Initialize Groq API configuration
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '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';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+// Generate a response using Groq API
 const generateResponse = async (message, currentParams, imageName, sequenceType) => {
-  return getStandardResponse(message, currentParams, sequenceType);
+  try {
+    // Create a context for the AI based on the current session
+    const context = `
+You are an MRI assistant helping students with a simulation. 
+Current parameters: ${JSON.stringify(currentParams)}
+Current image: ${imageName || 'Not selected'}
+Current sequence type: ${sequenceType || 'Not selected'}
+
+Keep your answers concise and educational. Focus on:
+1. Parameter recommendations for MRI sequences
+2. Slice positioning advice
+3. Artifact prevention
+4. Parameter validation
+
+If recommending sequence parameters, always format your response in bullet points and include these details:
+• TR: [value]ms (range: [min]-[max]ms)
+• TE: [value]ms (range: [min]-[max]ms)
+• Flip Angle: [value]° (if applicable)
+
+For ${sequenceType} sequences, the typical parameters are:
+${MRI_RECOMMENDATIONS[sequenceType] ? 
+  `TR: ${MRI_RECOMMENDATIONS[sequenceType].tr?.ideal}ms
+   TE: ${MRI_RECOMMENDATIONS[sequenceType].te?.ideal}ms
+   Flip Angle: ${MRI_RECOMMENDATIONS[sequenceType].flipAngle?.ideal || 'Variable'}°
+   ${MRI_RECOMMENDATIONS[sequenceType].description}` : 
+  'Information not available for this sequence type.'}
+`;
+
+    // Configure the request to Groq API
+    const response = await axios.post(
+      GROQ_API_URL,
+      {
+        model: "llama3-70b-8192",
+        messages: [
+          { role: "system", content: "You are a helpful MRI assistant with expert knowledge." },
+          { role: "user", content: context + "\n\nUser question: " + message }
+        ],
+        temperature: 0.7,
+        max_tokens: 800
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    // Extract the response text from Groq
+    const responseText = response.data.choices[0].message.content;
+    console.log("Groq response:", responseText);
+
+    // Parse the response to extract suggested parameters if available
+    const suggestedParams = extractParametersFromResponse(responseText, sequenceType);
+
+    return {
+      response: responseText,
+      suggestedParams
+    };
+
+  } catch (error) {
+    console.error("Error generating content with Groq:", error.response?.data || error.message);
+    
+    // Try with an alternative model if the first attempt fails
+    try {
+      console.log("Trying alternative model: mixtral-8x7b...");
+      
+      const response = await axios.post(
+        GROQ_API_URL,
+        {
+          model: "mixtral-8x7b-32768",
+          messages: [
+            { role: "system", content: "You are a helpful MRI assistant with expert knowledge." },
+            { role: "user", content: "You are an MRI assistant. " + message }
+          ],
+          temperature: 0.7,
+          max_tokens: 500
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const responseText = response.data.choices[0].message.content;
+      console.log("Alternative model response:", responseText);
+      
+      const suggestedParams = extractParametersFromResponse(responseText, sequenceType);
+      
+      return {
+        response: responseText,
+        suggestedParams
+      };
+    } catch (secondError) {
+      console.error("Error with alternative model:", secondError.response?.data || secondError.message);
+      // Fall back to the standard response if both Groq API attempts fail
+      return getStandardResponse(message, currentParams, sequenceType);
+    }
+  }
 };
 
+// Extract parameter suggestions from the AI response
+function extractParametersFromResponse(text, sequenceType) {
+  try {
+    const suggestedParams = {};
+    
+    // Try to extract TR value
+    const trMatch = text.match(/TR:\s*(\d+)\s*ms/i);
+    if (trMatch && trMatch[1]) {
+      suggestedParams.tr = parseInt(trMatch[1]);
+    }
+    
+    // Try to extract TE value
+    const teMatch = text.match(/TE:\s*(\d+)\s*ms/i);
+    if (teMatch && teMatch[1]) {
+      suggestedParams.te = parseInt(teMatch[1]);
+    }
+    
+    // Try to extract Flip Angle value
+    const flipAngleMatch = text.match(/Flip Angle:\s*(\d+)/i);
+    if (flipAngleMatch && flipAngleMatch[1]) {
+      suggestedParams.flipAngle = parseInt(flipAngleMatch[1]);
+    }
+    
+    // Return null if we didn't find any parameters to suggest
+    return Object.keys(suggestedParams).length > 0 ? suggestedParams : null;
+  } catch (error) {
+    console.error("Error extracting parameters:", error);
+    return null;
+  }
+}
+
+// Keep the fallback response function
 const getStandardResponse = (message, currentParams, sequenceType) => {
   const msg = message.toLowerCase();
 

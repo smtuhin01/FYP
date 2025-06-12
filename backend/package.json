@@ -11,6 +11,7 @@
   "author": "S M Tuhin",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.9.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -25,13 +26,6 @@
     "path": "^0.12.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
-  },
-  "overlay": {
-    "left": 123,
-    "top": 90,
-    "width": 180,
-    "height": 120,
-    "angle": 0
+    "nodemon": "^3.1.2"
   }
 }
