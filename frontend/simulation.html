@@ -3,107 +3,201 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MRI Simulation Page</title>
+  <title>MRI Simulation Interface</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
 
   <style>
-  
-
-  .image-container {
-  position: relative;
-  height: 256px;
-  overflow: visible !important;
-  border-radius: 0.375rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #afb1b3; 
-  border-radius: 0.375rem;
-  overflow: hidden;
-  border: 1px solid #202020;
-}
-.overlay-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: auto;
-  z-index:10;
-}
-.image-container:hover {
-  transform: scale(1.01);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
-.image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-  position: relative; 
-  z-index: 1;
-}
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #3b82f6;
+      --accent: #6366f1;
+      --secondary: #10b981;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+    }
     
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      min-height: 100vh;
+      color: var(--gray-800);
+    }
+    
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url('./picture/simulationpage.jpg');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.97) saturate(0.95);
+      opacity: 0.95;
+      z-index: -1;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Roboto Slab', serif;
+    }
+
+    .image-container {
+      position: relative;
+      min-height: 150px;
+      max-height: 300px;
+      overflow: visible !important;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      aspect-ratio: 4/3;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    .overlay-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    .image-container:hover {
+      transform: scale(1.01);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .image-container img {
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+      position: relative; 
+      z-index: 1;
+    }
+
     .image-label {
       position: absolute;
       top: 0;
       left: 0;
-      background-color: rgba(0, 0, 0, 0.7);
+      background: linear-gradient(to right, rgba(37, 99, 235, 0.9), rgba(99, 102, 241, 0.85));
       color: white;
-      padding: 0.25rem 0.5rem;
+      padding: 0.4rem 0.75rem;
       font-size: 0.875rem;
-      z-index: 10;
+      font-weight: 500;
+      border-top-left-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+      z-index: 15;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    
+
     .image-info {
-      padding: 0.75rem;
-      background-color: #f3f4f6;
-      font-size: 0.75rem;
+      padding: 0.75rem 1rem;
+      background-color: rgba(249, 250, 251, 0.9);
+      backdrop-filter: blur(8px);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--gray-200);
+      color: var(--gray-700);
+      font-weight: 500;
     }
-    
+
     .sequence-item {
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.375rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      transition: all 0.2s ease;
+      margin-bottom: 0.25rem;
+      border-left: 3px solid transparent;
     }
-    
+
     .sequence-item:hover {
-      background-color: #f3f4f6;
+      background-color: var(--gray-100);
     }
-    
+
     .sequence-item.active {
-      background-color: #e0f2fe;
-      color: #1d4ed8;
+      background-color: rgba(224, 242, 254, 0.8);
+      color: var(--primary-dark);
+      border-left-color: var(--primary);
     }
-    
+
     .sequence-item.active-group {
-      border-left: 4px solid #3b82f6;
+      border-left-color: var(--primary);
+      background-color: rgba(219, 234, 254, 0.6);
     }
-    
+
     .tab {
-      padding: 0.5rem 1rem;
+      padding: 0.75rem 1.25rem;
       cursor: pointer;
-      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      position: relative;
+      font-weight: 500;
     }
-    
+
+    .tab::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: transparent;
+      transition: background-color 0.2s ease;
+    }
+
+    .tab:hover::after {
+      background-color: var(--gray-300);
+    }
+
     .tab.active {
-      border-bottom: 2px solid #3b82f6;
-      color: #3b82f6;
+      color: var(--primary);
     }
-    
+
+    .tab.active::after {
+      background-color: var(--primary);
+    }
+
     .tab-content {
       display: none;
+      animation: fadeIn 0.3s ease;
     }
-    
+
     .tab-content.active {
       display: block;
     }
-    
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
     .notification-badge {
       position: absolute;
       top: -0.25rem;
@@ -112,432 +206,516 @@
       color: white;
       font-size: 0.75rem;
       border-radius: 9999px;
-      height: 1rem;
-      width: 1rem;
+      width: 1.25rem;
+      height: 1.25rem;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     }
-    
+
     .notification-panel {
       position: absolute;
       right: 0;
-      top: 2rem;
-      width: 20rem;
+      top: calc(100% + 0.5rem);
+      width: 22rem;
       z-index: 50;
       background-color: white;
-      border-radius: 0.375rem;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
       display: none;
+      overflow: hidden;
+      animation: slideDown 0.2s ease;
     }
     
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     .notification-panel.show {
       display: block;
     }
-    
+
     .notification-item {
-      border-bottom: 1px solid #f3f4f6;
-      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--gray-100);
+      padding: 0.75rem 1rem;
+      transition: background-color 0.15s ease;
     }
-    
+
+    .notification-item:hover {
+      background-color: var(--gray-50);
+    }
+
     .notification-item:last-child {
       border-bottom: none;
     }
 
     .sequence-list-container {
-      max-height: 300px;
+      max-height: 350px;
       overflow-y: auto;
-      border-radius: 0.375rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gray-400) transparent;
     }
-    
-    .canvas-container{
+
+    .sequence-list-container::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sequence-list-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sequence-list-container::-webkit-scrollbar-thumb {
+      background-color: var(--gray-400);
+      border-radius: 20px;
+    }
+
+    .canvas-container {
       position: absolute !important;
-      min-width: 100%;
-    }
-
-
-    @media (max-width: 768px) {
-      .grid-cols-3 {
-        grid-template-columns: 1fr;
-      }
+      min-width: 50%;
     }
 
     .chat-message {
-        white-space: pre-wrap;
-        word-break: break-word;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 0.5rem;
+      max-width: 85%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
-    
+
     .user-message {
-        background-color: #3B82F6;
-        color: white;
+      background: linear-gradient(to right, var(--primary), var(--primary-dark));
+      color: white;
+      border-top-right-radius: 0.25rem;
+      align-self: flex-end;
+      margin-left: auto;
     }
-    
+
     .assistant-message {
-        background-color: #F3F4F6;
-        color: #1F2937;
+      background-color: white;
+      color: var(--gray-800);
+      border-top-left-radius: 0.25rem;
+      border: 1px solid var(--gray-200);
     }
-    
+
+    #chatMessages {
+      padding: 1rem;
+      gap: 0.75rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gray-400) transparent;
+    }
+
     #chatMessages::-webkit-scrollbar {
-        width: 6px;
+      width: 4px;
     }
-    
+
     #chatMessages::-webkit-scrollbar-track {
-        background: #F3F4F6;
+      background: transparent;
+    }
+
+    #chatMessages::-webkit-scrollbar-thumb {
+      background-color: var(--gray-400);
+      border-radius: 20px;
+    }
+
+    #chatMessages > div {
+      margin-bottom: 0.75rem;
+    }
+
+    #chatbot {
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .chat-bullet {
+      display: block;
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    .chat-bullet::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+    }
+
+    .app-header {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.5rem;
+      transition: all 0.15s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+      outline: none;
+    }
+
+    .form-select {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.75rem center;
+      background-repeat: no-repeat;
+      background-size: 1rem;
+      padding-right: 2.5rem;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.625rem 1.25rem;
+      font-weight: 500;
+      border-radius: 0.5rem;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, var(--primary), var(--accent));
+      color: white;
     }
     
-    #chatMessages::-webkit-scrollbar-thumb {
-        background: #CBD5E1;
-        border-radius: 3px;
+    .btn-primary:hover {
+      box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+      transform: translateY(-1px);
     }
-
-.chat-message {
-    font-size: 0.95rem;
-    line-height: 1.6;
-    letter-spacing: 0.01em;
-}
-
-.chat-message br {
-    margin-bottom: 0.5rem;
-}
-
-.chat-message strong {
-    font-weight: 600;
-    display: inline-block;
-    margin-bottom: 0.25rem;
-}
-
-.chat-message ul, 
-.chat-message ol {
-    margin: 0.5rem 0 0.5rem 1.5rem;
-}
-
-.chat-message li {
-    margin-bottom: 0.375rem;
-    padding-left: 0.5rem;
-}
-
-.chat-message .bullet-point {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 0.375rem;
-}
-
-.chat-message .bullet-point:before {
-    content: "•";
-    margin-right: 0.5rem;
-}
-
-.chat-message {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 15px !important;
-    line-height: 1.4;
-}
-
-.chat-bullet {
-    display: block;
-    padding-left: 1rem;
-    position: relative;
-}
-
-.chat-bullet::before {
-    content: "•";
-    position: absolute;
-    left: 0;
-}
-
-#chatMessages {
-    padding: 1rem;
-    gap: 0.75rem;
-}
-
-#chatMessages > div {
-    margin-bottom: 0.75rem;
-}
-
-#chatbot {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.assistant-message {
-    background-color: rgb(243, 244, 246);
-    color: rgb(31, 41, 55);
-}
-
-.user-message {
-    background-color: rgb(59, 130, 246);
-    color: white;
-}
-
-#chatInput {
-    font-size: 14px;
-    padding: 0.5rem 1rem;
-}
   </style>
 </head>
-<body class="min-h-screen bg-gray-50 p-4 bg-cover bg-center bg-no-repeat" style="background-image: url('./picture/simulationpage.jpg')">
-  <header class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Simulation page</h1>
-    <div class="flex items-center gap-4">
-      <button id="saveRunBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-         Run Simulation
-      </button>
-      <div class="relative">
-        <button id="notificationBtn" class="text-gray-600 hover:text-gray-800">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+<body>
+  <header class="app-header">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-gray-800">MRI Simulation Interface</h1>
+      <div class="flex items-center gap-4">
+        <button id="saveRunBtn" class="btn btn-primary flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span id="notificationBadge" class="notification-badge">2</span>
+          <span>Run Simulation</span>
         </button>
-        <div id="notificationPanel" class="notification-panel">
-          <div class="p-3 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="text-sm font-medium">Notifications</h3>
-            <button id="closeNotificationsBtn" class="text-gray-500 hover:text-gray-700">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          <div class="p-3">
-            <ul class="space-y-2 max-h-60 overflow-y-auto" id="notificationsList">
-              <li class="notification-item">
-                <p class="text-sm">Please review the T2 FLAIR sequence parameters</p>
-                <p class="text-xs text-gray-500 mt-1">10:30 AM</p>
-              </li>
-              <li class="notification-item">
-                <p class="text-sm">New protocol added to your workspace</p>
-                <p class="text-xs text-gray-500 mt-1">Yesterday</p>
-              </li>
-            </ul>
+        <div class="relative">
+          <button id="notificationBtn" class="relative p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span id="notificationBadge" class="notification-badge">2</span>
+          </button>
+          <div id="notificationPanel" class="notification-panel">
+            <div class="p-3 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+              <h3 class="text-sm font-medium text-gray-800">Notifications</h3>
+              <button id="closeNotificationsBtn" class="text-gray-500 hover:text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="p-0">
+              <ul class="space-y-0 max-h-60 overflow-y-auto" id="notificationsList">
+                <li class="notification-item">
+                  <p class="text-sm font-medium">Please review the T2 FLAIR sequence parameters</p>
+                  <p class="text-xs text-gray-500 mt-1">10:30 AM</p>
+                </li>
+                <li class="notification-item">
+                  <p class="text-sm font-medium">New protocol added to your workspace</p>
+                  <p class="text-xs text-gray-500 mt-1">Yesterday</p>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </header>
 
-  <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Image Viewer Section -->
-    <div class="lg:col-span-3">
-      <div class="bg-white rounded-lg shadow-md p-4">
-        <h2 class="text-xl font-semibold mb-4">Image Viewer</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="imageViewer">
-          <!-- Images will be dynamically inserted here -->
-        </div>
-      </div>
+  <main class="container mx-auto px-4 pb-12">
+    <div class="mb-6">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-2">MRI Cardiac Simulation</h2>
+      <p class="text-gray-600 max-w-3xl">Configure and visualize how different MRI acquisition parameters affect cardiac image quality. The simulation helps understand the relationship between MRI settings and resulting images.</p>
     </div>
 
-    <!-- Pulse Sequence Section -->
-    <div class="lg:col-span-1">
-      <div class="bg-white rounded-lg shadow-md">
-        <div class="p-4 border-b border-gray-100">
-          <div class="flex justify-between items-center">
-            <h2 class="text-lg font-semibold">Pulse Sequence</h2>
-            <button id="toggleSequenceBtn" class="text-gray-500 hover:text-gray-700">
-              <svg id="collapseIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
-                <polyline points="18 15 12 9 6 15"></polyline>
+    <!-- Image Viewer Section -->
+    <div class="mb-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg font-semibold">Image Viewer</h3>
+          <div class="flex space-x-2">
+            <button class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Previous images">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
-              <svg id="expandIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
+            </button>
+            <button class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Next images">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </button>
           </div>
-        </div>
-        <div id="sequenceContent" class="p-4">
-          <div class="sequence-list-container">
-            <ul id="sequenceList" class="space-y-1">
-              <!-- Sequence items will be dynamically inserted here -->
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Parameter Settings Section -->
-    <div class="lg:col-span-2">
-      <div class="bg-white rounded-lg shadow-md">
-        <div class="p-4 border-b border-gray-100">
-          <h2 id="parameterTitle" class="text-lg font-semibold">Set Parameters</h2>
         </div>
         <div class="p-4">
-          <div class="flex border-b border-gray-200">
-            <button class="tab active" data-tab="geometry">Geometry</button>
-            <button class="tab" data-tab="sequence">Sequence</button>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="imageViewer">
+            <!-- Images will be dynamically inserted here -->
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div id="geometryTab" class="tab-content active space-y-4 mt-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label for="fov" class="block text-sm font-medium text-gray-700">Field of View (FOV)</label>
-                <div class="flex items-center">
-                  <input id="fov" type="number" min="100" max="500" value="250" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <span class="ml-2 text-sm text-gray-500">mm</span>
-                </div>
-              </div>
-
-              <div class="space-y-2">
-                <label for="matrixSize" class="block text-sm font-medium text-gray-700">Matrix Size</label>
-                <select id="matrixSize" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <option value="128×128">128×128</option>
-                  <option value="256×256" selected>256×256</option>
-                  <option value="512×512">512×512</option>
-                </select>
-              </div>
-
-              <div class="space-y-2">
-                <label for="sliceThickness" class="block text-sm font-medium text-gray-700">Slice Thickness</label>
-                <div class="flex items-center">
-                  <input id="sliceThickness" type="number" min="0.5" max="10" step="0.5" value="3" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <span class="ml-2 text-sm text-gray-500">mm</span>
-                </div>
-              </div>
-
-              <div class="space-y-2">
-                <label for="sliceGap" class="block text-sm font-medium text-gray-700">Slice Gap</label>
-                <div class="flex items-center">
-                  <input id="sliceGap" type="number" min="0" max="5" step="0.1" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <span class="ml-2 text-sm text-gray-500">mm</span>
-                </div>
-              </div>
-
-              <div class="space-y-2">
-                <label for="planeOrientation" class="block text-sm font-medium text-gray-700">Plane Orientation</label>
-                <select id="planeOrientation" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <option value="Axial" selected>Axial</option>
-                  <option value="Coronal">Coronal</option>
-                  <option value="Sagittal">Sagittal</option>
-                </select>
-              </div>
-
-              <div class="space-y-2">
-                <label for="foldoverDirection" class="block text-sm font-medium text-gray-700">Fold over Direction</label>
-                <select id="foldoverDirection" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <option value="Left-Right" selected>Left-Right</option>
-                  <option value="Anterior-Posterior">Anterior-Posterior</option>
-                </select>
-              </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Pulse Sequence Section -->
+      <div>
+        <div class="card h-full">
+          <div class="card-header">
+            <h3 class="text-lg font-semibold">Pulse Sequences</h3>
+            <button id="toggleSequenceBtn" class="p-1 hover:bg-gray-100 rounded-full">
+              <svg id="collapseIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+              </svg>
+              <svg id="expandIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+          <div id="sequenceContent" class="p-4">
+            <div class="sequence-list-container">
+              <ul id="sequenceList" class="space-y-1">
+                <!-- Sequence items will be dynamically inserted here -->
+              </ul>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div id="sequenceTab" class="tab-content space-y-4 mt-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label for="tr" class="block text-sm font-medium text-gray-700">TR</label>
-                <div class="flex items-center">
-                  <input id="tr" type="number" min="300" max="3000" value="500" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <span class="ml-2 text-sm text-gray-500">ms</span>
-                </div>
-              </div>
-
-              <div class="space-y-2">
-                <label for="te" class="block text-sm font-medium text-gray-700">TE</label>
-                <div class="flex items-center">
-                  <input id="te" type="number" min="10" max="150" value="20" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <span class="ml-2 text-sm text-gray-500">ms</span>
-                </div>
-              </div>
-
-              <div class="space-y-2">
-                <label for="flipAngle" class="block text-sm font-medium text-gray-700">Flip Angle</label>
-                <div class="flex items-center">
-                  <input id="flipAngle" type="number" min="0" max="180" value="90" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <span class="ml-2 text-sm text-gray-500">°</span>
-                </div>
-              </div>
-
-              <div class="space-y-2">
-                <label for="pulseSequence" class="block text-sm font-medium text-gray-700">Pulse Sequence</label>
-                <select id="pulseSequence" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <option value="T1-Weighted" selected>T1-Weighted</option>
-                  <option value="T2-Weighted">T2-Weighted</option>
-                  <option value="FLAIR">FLAIR</option>
-                  <option value="DWI">DWI</option>
-                  <option value="GRE">GRE</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-6 flex justify-end">
-            <button id="applyChangesBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+      <!-- Parameter Settings Section -->
+      <div class="lg:col-span-2">
+        <div class="card h-full">
+          <div class="card-header">
+            <h3 id="parameterTitle" class="text-lg font-semibold">MRI Parameters</h3>
+            <button id="applyChangesBtn" class="btn bg-gray-100 hover:bg-gray-200 text-gray-800 flex items-center gap-2 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
               Apply Changes
             </button>
+          </div>
+          
+          <div class="border-b border-gray-200">
+            <div class="flex">
+              <button class="tab active" data-tab="geometry">Geometry</button>
+              <button class="tab" data-tab="sequence">Sequence</button>
+            </div>
+          </div>
+          
+          <div class="p-5">
+            <!-- Geometry Tab Content -->
+            <div id="geometryTab" class="tab-content active">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                  <label for="fov" class="block text-sm font-medium text-gray-700 mb-2">Field of View (FOV)</label>
+                  <div class="flex items-center">
+                    <input id="fov" type="number" min="100" max="500" value="250" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">mm</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Controls the physical size of the imaging area</span>
+                </div>
+                
+                <div>
+                  <label for="matrixSize" class="block text-sm font-medium text-gray-700 mb-2">Matrix Size</label>
+                  <select id="matrixSize" class="form-control form-select">
+                    <option value="128×128">128×128</option>
+                    <option value="256×256" selected>256×256</option>
+                    <option value="512×512">512×512</option>
+                  </select>
+                  <span class="text-xs text-gray-500 mt-1 block">Determines image resolution</span>
+                </div>
+                
+                <div>
+                  <label for="sliceThickness" class="block text-sm font-medium text-gray-700 mb-2">Slice Thickness</label>
+                  <div class="flex items-center">
+                    <input id="sliceThickness" type="number" min="0.5" max="10" step="0.5" value="3" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">mm</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Thickness of each imaging slice</span>
+                </div>
+                
+                <div>
+                  <label for="sliceGap" class="block text-sm font-medium text-gray-700 mb-2">Slice Gap</label>
+                  <div class="flex items-center">
+                    <input id="sliceGap" type="number" min="0" max="5" step="0.1" value="0" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">mm</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Space between adjacent slices</span>
+                </div>
+                
+                <div>
+                  <label for="planeOrientation" class="block text-sm font-medium text-gray-700 mb-2">Plane Orientation</label>
+                  <select id="planeOrientation" class="form-control form-select">
+                    <option value="Axial" selected>Axial</option>
+                    <option value="Coronal">Coronal</option>
+                    <option value="Sagittal">Sagittal</option>
+                  </select>
+                  <span class="text-xs text-gray-500 mt-1 block">Orientation of imaging planes</span>
+                </div>
+                
+                <div>
+                  <label for="foldoverDirection" class="block text-sm font-medium text-gray-700 mb-2">Fold over Direction</label>
+                  <select id="foldoverDirection" class="form-control form-select">
+                    <option value="Left-Right" selected>Left-Right</option>
+                    <option value="Anterior-Posterior">Anterior-Posterior</option>
+                  </select>
+                  <span class="text-xs text-gray-500 mt-1 block">Direction of potential aliasing artifacts</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Sequence Tab Content -->
+            <div id="sequenceTab" class="tab-content">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                  <label for="tr" class="block text-sm font-medium text-gray-700 mb-2">TR (Repetition Time)</label>
+                  <div class="flex items-center">
+                    <input id="tr" type="number" min="300" max="3000" value="500" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">ms</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Time between consecutive pulse sequences</span>
+                </div>
+                
+                <div>
+                  <label for="te" class="block text-sm font-medium text-gray-700 mb-2">TE (Echo Time)</label>
+                  <div class="flex items-center">
+                    <input id="te" type="number" min="10" max="150" value="20" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">ms</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Time between excitation and signal readout</span>
+                </div>
+                
+                <div>
+                  <label for="flipAngle" class="block text-sm font-medium text-gray-700 mb-2">Flip Angle</label>
+                  <div class="flex items-center">
+                    <input id="flipAngle" type="number" min="0" max="180" value="90" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">°</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">RF pulse rotation angle</span>
+                </div>
+                
+                <div>
+                  <label for="pulseSequence" class="block text-sm font-medium text-gray-700 mb-2">Pulse Sequence</label>
+                  <select id="pulseSequence" class="form-control form-select">
+                    <option value="T1-Weighted" selected>T1-Weighted</option>
+                    <option value="T2-Weighted">T2-Weighted</option>
+                    <option value="FLAIR">FLAIR</option>
+                    <option value="DWI">DWI</option>
+                    <option value="GRE">GRE</option>
+                  </select>
+                  <span class="text-xs text-gray-500 mt-1 block">Type of pulse sequence determining tissue contrast</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </main>
 
-  <footer class="mt-8 flex justify-end gap-4 items-center">
-  <button id="assistantBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-    </svg>
-    MRI Assistant
-  </button>
-</footer>
-
-  <!-- AI Assistant Chat Window -->
-<div id="chatbot" class="fixed bottom-4 right-4 w-96 bg-white rounded-lg shadow-xl transition-transform duration-200 transform translate-y-0 z-50 hidden" style="height: 500px;">
-  <div class="flex justify-between items-center p-4 border-b border-gray-200">
-    <div class="flex items-center">
-      <svg class="w-6 h-6 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div class="fixed bottom-6 right-6 flex space-x-4">
+    <button id="assistantBtn" class="btn btn-primary shadow-lg flex items-center space-x-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
       </svg>
-      <h3 class="text-lg font-semibold">MRI Assistant</h3>
-    </div>
-    <div class="flex gap-2">
-      <button id="minimizeChatbot" class="text-gray-500 hover:text-gray-700">
+      <span>MRI Assistant</span>
+    </button>
+  </div>
+
+  <!-- MRI Assistant Chat Window -->
+  <div id="chatbot" class="fixed bottom-6 right-6 w-96 rounded-xl shadow-2xl z-50 hidden overflow-hidden">
+    <div class="flex justify-between items-center p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+      <div class="flex items-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        <h3 class="text-lg font-semibold">MRI Assistant</h3>
+      </div>
+      <button id="minimizeChatbot" class="hover:bg-white/20 rounded p-1.5 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"/>
         </svg>
       </button>
     </div>
+    
+    <div id="chatMessages" class="bg-gray-50 overflow-y-auto" style="height: 380px;"></div>
+    
+    <div class="border-t border-gray-200 p-4 bg-white">
+      <form id="chatForm" class="flex space-x-2">
+        <input type="text" id="chatInput" class="flex-1 form-control" placeholder="Ask about MRI parameters...">
+        <button type="submit" class="btn btn-primary !p-2.5 aspect-square">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </button>
+      </form>
+    </div>
   </div>
-  
-  <div id="chatMessages" class="p-4 space-y-4 overflow-y-auto" style="height: 380px;">
-    <!-- Messages will appear here -->
-  </div>
-  
-  <div class="border-t border-gray-200 p-4">
-    <form id="chatForm" class="flex gap-2">
-      <input type="text" id="chatInput" class="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ask about MRI parameters...">
-      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-        </svg>
-      </button>
-    </form>
-  </div>
-</div>
 
-<!-- Minimized Chat Button -->
-<button id="openChatbot" class="fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full shadow-lg hidden hover:bg-blue-600">
-  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-  </svg>
-</button>
+  <!-- Minimized Chat Button -->
+  <button id="openChatbot" class="fixed bottom-6 right-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg hidden hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+    </svg>
+  </button>
 
-<!-- Add this right before the closing </body> tag -->
-<button id="logoutBtn" class="fixed bottom-4 left-4 bg-gray-700 hover:bg-black text-white px-4 py-2 rounded-md shadow-lg transition duration-300 ease-in-out flex items-center gap-2">
-  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-  </svg>
-  Logout
-</button>
+  <!-- Logout Button -->
+  <button id="logoutBtn" class="fixed bottom-6 left-6 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
+    <span>Logout</span>
+  </button>
 
   <script>
+    // Keep all existing script content unchanged
     function parseJwt(token) {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = decodeURIComponent(atob(base64Url).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(base64);
-  } catch (e) {
-    return null;
-  }
-}
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = decodeURIComponent(atob(base64Url).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(base64);
+      } catch (e) {
+        return null;
+      }
+    }
 
     // Image data
     const imageFiles = [
@@ -707,90 +885,95 @@ function setupCanvasOverlay(canvasEl, overlayData = null) {
 
   console.log('Setting up overlay for:', img?.src);
 
-  img.onload = () => {
-    console.log('Image loaded:', img.src);
-    setTimeout(() => {
-      const width = img.clientWidth;
-      const height = img.clientHeight;
+  const updateCanvasSize = () => {
+    // Get actual displayed dimensions of the image
+    const displayWidth = img.clientWidth;
+    const displayHeight = img.clientHeight;
+    
+    console.log('Image display dimensions:', displayWidth, displayHeight);
 
-      console.log('Image dimensions:', width, height);
+    if (!displayWidth || !displayHeight) {
+      console.warn('Image dimensions not available yet');
+      return;
+    }
+    
+    // Resize the canvas to match the image's displayed size
+    canvasEl.width = displayWidth;
+    canvasEl.height = displayHeight;
+    
+    const canvas = new fabric.Canvas(canvasEl, {
+      selection: false,
+      backgroundColor: null,
+      preserveObjectStacking: true
+    });
+    
+    const size = Math.min(displayWidth, displayHeight) * 0.9;
+    const safeLeft = Math.max(0, Math.min(displayWidth - (overlayData?.width || size), overlayData?.left ?? (displayWidth - size) / 2));
+    const safeTop = Math.max(0, Math.min(displayHeight - (overlayData?.height || size), overlayData?.top ?? (displayHeight - size) / 2));
+    
+    const rect = new fabric.Rect({
+      left: overlayData?.left ?? (displayWidth - size) / 2,
+      top: overlayData?.top ?? (displayHeight - size) / 2,
+      width: overlayData?.width ?? size,
+      height: overlayData?.height ?? size,
+      angle: overlayData?.angle ?? 0,
+      fill: 'transparent',
+      stroke: 'blue',
+      strokeWidth: 2,
+      hasRotatingPoint: true,
+      cornerColor: 'blue',
+      transparentCorners: false,
+      lockUniScaling: true
+    });
 
-      if (!width || !height) {
-        console.warn('Image dimensions not available yet');
-        return;
-      }
-
-      canvasEl.width = width;
-      canvasEl.height = height;
-     
-      const canvas = new fabric.Canvas(canvasEl, {
-        selection: false,
-        backgroundColor: null,
-        preserveObjectStacking: true
-      });
-
-const size = Math.min(width, height)* 0.9; 
-const safeLeft = Math.max(0, Math.min(width - (overlayData?.width || size), overlayData?.left ?? (width - size) / 2));
-const safeTop = Math.max(0, Math.min(height - (overlayData?.height || size), overlayData?.top ?? (height - size) / 2));
-const rect = new fabric.Rect({
-  left: overlayData?.left ?? (width - size) / 2,
-  top: overlayData?.top ?? (height - size) / 2,
-  width: overlayData?.width ?? size,
-  height: overlayData?.height ?? size,
-  angle: overlayData?.angle ?? 0,
-  fill: 'transparent',
-  stroke: 'blue',
-  strokeWidth: 2,
-  hasRotatingPoint: true,
-  cornerColor: 'blue',
-  transparentCorners: false,
-  lockUniScaling: true 
-});
-
-      canvas.add(rect);
-rect.originalLeft = rect.left;
+    canvas.add(rect);
+    rect.originalLeft = rect.left;
     rect.originalTop = rect.top;
     rect.originalScaleX = rect.scaleX;
     rect.originalScaleY = rect.scaleY;
 
     canvasOverlays[canvasEl] = {
       canvas,
-      originalWidth: width,
-      originalHeight: height
+      originalWidth: displayWidth,
+      originalHeight: displayHeight
     };
-      
-canvas.on('object:moving', function (e) {
-  const obj = e.target;
+    
+    canvas.on('object:moving', function(e) {
+      const obj = e.target;
+      obj.setCoords();
 
-  obj.setCoords(); // Update object's coordinates
+      const objWidth = obj.getScaledWidth();
+      const objHeight = obj.getScaledHeight();
+      const canvasWidth = canvas.getWidth();
+      const canvasHeight = canvas.getHeight();
 
-  const objWidth = obj.getScaledWidth();
-  const objHeight = obj.getScaledHeight();
-  const canvasWidth = canvas.getWidth();
-  const canvasHeight = canvas.getHeight();
+      // Clamp the position
+      if (obj.left < 0) obj.left = 0;
+      if (obj.top < 0) obj.top = 0;
+      if (obj.left + objWidth > canvasWidth) obj.left = canvasWidth - objWidth;
+      if (obj.top + objHeight > canvasHeight) obj.top = canvasHeight - objHeight;
 
-  // Clamp the position
-  if (obj.left < 0) obj.left = 0;
-  if (obj.top < 0) obj.top = 0;
-  if (obj.left + objWidth > canvasWidth) obj.left = canvasWidth - objWidth;
-  if (obj.top + objHeight > canvasHeight) obj.top = canvasHeight - objHeight;
+      obj.setCoords();
+    });
 
-  obj.setCoords(); // Make sure new coords are updated
-});
+    canvas.setWidth(displayWidth);
+    canvas.setHeight(displayHeight);
+    canvas.renderAll();
 
-      canvas.setWidth(width);
-      canvas.setHeight(height);
-      canvas.renderAll();
-
-      canvasEl._fabric = canvas;
-      console.log('Overlay rectangle added to canvas');
-    }, 50); // wait to ensure image is painted
+    canvasEl._fabric = canvas;
+    console.log('Overlay rectangle added to canvas');
   };
 
-  
+  // Initial setup when image loads
+  img.onload = () => {
+    console.log('Image loaded:', img.src);
+    setTimeout(updateCanvasSize, 50); // Small delay to ensure image is fully rendered
+  };
+
+  // Handle if image is already loaded
   if (img.complete && img.naturalHeight !== 0) {
-    console.log('Manually triggering image.onload for cached image');
-    img.onload();
+    console.log('Image already loaded, setting up canvas');
+    setTimeout(updateCanvasSize, 50);
   }
 }
 const canvasOverlays = {}; // Store overlay data by canvasEl
