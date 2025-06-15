@@ -9,6 +9,7 @@ const parameterRoutes = require('./routes/parameterRoutes');
 const lecturerRoutes = require('./routes/lecturerRoutes');
 const adminRoutes = require('./routes/adminRoutes'); // Import adminRoutes
 const assistantRoutes = require('./routes/assistantRoutes'); // Import assistantRoutes
+const fs = require('fs'); // Add this import
 connectDB();
 
 const app = express();
@@ -23,6 +24,26 @@ app.get('/lecturer-login.html', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'lecturer', 'lecturer-login.html'));
 });
 
+// Ensure needed directories exist
+const ensureDirectoriesExist = () => {
+  const directories = [
+    './frontend/Video',
+    './frontend/brain',
+    './frontend/spine',
+    './frontend/abdominal',
+    './frontend/cardic',
+    './temp-uploads'
+  ];
+  
+  directories.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      console.log(`Creating directory: ${dir}`);
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+};
+
+ensureDirectoriesExist();
 
 // API routes
 app.use('/api/auth', authRoutes);

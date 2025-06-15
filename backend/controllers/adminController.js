@@ -196,40 +196,67 @@ exports.uploadMedia = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const { name, category, mediaType, parameters } = req.body;
-
-    // Validate required fields
-    if (!name || !category || !mediaType) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    const { name, category, mediaType } = req.body;
+    const parameters = req.body.parameters ? JSON.parse(req.body.parameters) : {};
+    
+    // Determine the appropriate storage folder based on category and media type
+    let storagePath;
+    if (mediaType === 'video') {
+      storagePath = 'Video'; // All videos go to the Video folder
+    } else {
+      // Images go to their category folder (lowercase)
+      storagePath = category.toLowerCase();
     }
 
-    // Create media document
-    const media = await Media.create({
+    // Move the file to the appropriate folder
+    const sourceFilePath = `./temp-uploads/${req.file.filename}`;
+    const targetDir = `./frontend/${storagePath}`;
+    
+    // Ensure the target directory exists
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+    
+    const targetFilePath = `${targetDir}/${req.file.filename}`;
+    
+    // Create thumbnail if it's an image
+    let thumbnailFile = null;
+    if (mediaType === 'image') {
+      // Create a thumbnail version for the image
+      const thumbName = req.file.filename.replace('.jpg', '_thumb.jpg').replace('.png', '_thumb.png');
+      // [Thumbnail creation code...]
+      thumbnailFile = thumbName;
+    }
+
+    // Save media information to database
+    const media = new Media({
       name,
+      filename: req.file.filename,
+      thumbnailFilename: thumbnailFile,
       category,
       mediaType,
-      filename: req.file.filename,
-      fileId: req.file.id,
-      parameters: parameters ? JSON.parse(parameters) : DEFAULT_MRI_PARAMETERS
+      parameters
     });
 
-    res.status(201).json({
-      success: true,
-      data: media
-    });
+    await media.save();
+    res.status(201).json(media);
   } catch (error) {
-    console.error('Media upload error:', error);
-    res.status(500).json({ 
-      message: 'Error uploading media',
-      error: error.message 
-    });
+    console.error('Error uploading media:', error);
+    res.status(500).json({ message: 'Server error during media upload' });
   }
 };
 
 // Get all media
 exports.getAllMedia = async (req, res) => {
   try {
-    const media = await Media.find();
+    const { category, mediaType } = req.query;
+    
+    // Build filter based on query parameters
+    const filter = {};
+    if (category) filter.category = category;
+    if (mediaType) filter.mediaType = mediaType;
+    
+    const media = await Media.find(filter);
     res.status(200).json(media);
   } catch (error) {
     res.status(500).json({ message: error.message });

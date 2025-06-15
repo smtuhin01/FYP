@@ -346,8 +346,11 @@
         <div class="anatomy-info">
           <h3 class="anatomy-name">Spine</h3>
           <p class="anatomy-description">Explore spine imaging protocols including T1, T2 and STIR sequences. Learn how to optimize visualization of vertebral bodies, spinal cord and neural foramina.</p>
-          <button class="start-btn" disabled onclick="startSimulation('spine')">
-            Coming Soon
+          <button class="start-btn" onclick="startSimulation('spine')">
+            Start Learning
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </button>
         </div>
       </div>
@@ -361,8 +364,11 @@
         <div class="anatomy-info">
           <h3 class="anatomy-name">Abdominal</h3>
           <p class="anatomy-description">Master abdominal MRI protocols, including breath-hold techniques, fat saturation, and dynamic contrast enhancement for organ assessment.</p>
-          <button class="start-btn" disabled onclick="startSimulation('abdominal')">
-            Coming Soon
+          <button class="start-btn" onclick="startSimulation('abdominal')">
+            Start Learning
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </button>
         </div>
       </div>
@@ -376,8 +382,11 @@
         <div class="anatomy-info">
           <h3 class="anatomy-name">Brain</h3>
           <p class="anatomy-description">Study neuroimaging protocols to visualize brain anatomy and pathology. Learn about DWI, FLAIR, SWI and other advanced sequences.</p>
-          <button class="start-btn" disabled onclick="startSimulation('brain')">
-            Coming Soon
+          <button class="start-btn" onclick="startSimulation('brain')">
+            Start Learning
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </button>
         </div>
       </div>
@@ -430,13 +439,23 @@
       });
     }
 
-    function startSimulation(anatomy) {
-      if (anatomy === 'cardic') {
-        window.location.href = 'simulation.html'; 
-      } else {
-        alert(`The ${anatomy} simulation module is currently in development. Check back soon for updates!`);
-      }
-    }
+    tuhin/fyp-old-version/frontend/home.html
+function startSimulation(type) {
+  switch(type) {
+    case 'cardic':
+      window.location.href = 'simulation.html';
+      break;
+    case 'spine':
+      window.location.href = 'spine-simulation.html';
+      break;
+    case 'abdominal':
+      window.location.href = 'abdominal-simulation.html';
+      break;
+    case 'brain':
+      window.location.href = 'brain-simulation.html';
+      break;
+  }
+}
 
     function logout() {
       localStorage.removeItem('token'); 
