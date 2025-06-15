@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <title>Brain MRI Simulation Results</title>
+    <!-- Same structure as other result pages but with brain-specific content -->
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Brain MRI Sequences</h2>
+                <!-- Same structure -->
+            </div>
+            <!-- Rest of the sidebar -->
+        </div>
+        
+        <div class="main-content">
+            <!-- Same structure as other result pages -->
+            <div class="video-container">
+                <video id="mainVideo" controls preload="metadata">
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                
+                <div class="video-info-overlay">
+                    <div class="video-title" id="videoTitle">Select a brain MRI sequence to play</div>
+                    <div class="video-details" id="videoDetails"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+  // Video data will be populated from admin uploads
+  let videoData = [];
+  let currentVideoIndex = -1;
+
+  // Initialize the application
+  document.addEventListener("DOMContentLoaded", async () => {
+    await loadVideos();
+    updateSequenceCount();
+    setupLogoutButton();
+  });
+
+  // Load videos from API
+  async function loadVideos() {
+    try {
+      const response = await fetch('http://localhost:5001/api/admin/media?category=Brain&mediaType=video', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Map API data to video format
+      videoData = data.map(video => ({
+        id: video._id,
+        path: `http://localhost:5001/Video/${video.filename}`,
+        name: video.name,
+        duration: video.duration || "03m 00s", // Default or metadata if available
+        quality: video.quality || "High"
+      }));
+      
+      populateVideoList();
+    } catch (error) {
+      console.error('Error loading videos:', error);
+      videoData = []; // Empty array on error
+      document.getElementById('videoTitle').textContent = "Error loading videos. Please try again later.";
+    }
+  }
+
+  // Rest of the functions (populateVideoList, updateSequenceCount, playVideo, setupLogoutButton)
+  // Same as spine-result.html
+</script>
+</body>
+</html>

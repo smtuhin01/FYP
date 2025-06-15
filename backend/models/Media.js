@@ -44,6 +44,10 @@ const mediaSchema = new mongoose.Schema({
       flipAngle: Number,
       pulseSequence: String
     }
+  },
+  storagePath: {
+    type: String,
+    required: true
   }
 }, { timestamps: true });
 
