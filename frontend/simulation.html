@@ -411,6 +411,86 @@
       box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
       transform: translateY(-1px);
     }
+
+    /* Toast styles */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.toast {
+  min-width: 280px;
+  max-width: 350px;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.5rem;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-success {
+  background: linear-gradient(to right, #10b981, #059669);
+  color: white;
+  border-left: 5px solid #064e3b;
+}
+
+.toast-error {
+  background: linear-gradient(to right, #ef4444, #dc2626);
+  color: white;
+  border-left: 5px solid #7f1d1d;
+}
+
+.toast-info {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  color: white;
+  border-left: 5px solid #1e40af;
+}
+
+.toast-warning {
+  background: linear-gradient(to right, #f59e0b, #d97706);
+  color: white;
+  border-left: 5px solid #92400e;
+}
+
+.toast-icon {
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex-grow: 1;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.toast-progress-bar {
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  width: 100%;
+}
   </style>
 </head>
 <body>
@@ -473,12 +553,12 @@
         <div class="card-header">
           <h3 class="text-lg font-semibold">Image Viewer</h3>
           <div class="flex space-x-2">
-            <button class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Previous images">
+            <button id="prevImagesBtn" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Previous images">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Next images">
+            <button id="nextImagesBtn" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Next images">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -702,6 +782,8 @@
     </svg>
     <span>Logout</span>
   </button>
+
+  <div id="toast-container" class="toast-container"></div>
 
   <script>
     // Keep all existing script content unchanged
@@ -1146,9 +1228,9 @@ function getOverlayDataForImage(imageId) {
     // Setup event listeners
     function setupEventListeners() {
       // Tab switching
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          const tabId = tab.getAttribute('data-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+       const tabId = tab.getAttribute('data-tab');
           
           // Update active tab
           tabs.forEach(t => t.classList.remove('active'));
@@ -1156,13 +1238,36 @@ function getOverlayDataForImage(imageId) {
           
           // Show corresponding tab content
           tabContents.forEach(content => {
-            content.classList.remove('active');
-            if (content.id === `${tabId}Tab`) {
-              content.classList.add('active');
+        content.classList.remove('active');
+        if (content.id === `${tabId}Tab`) {
+          content.classList.add('active');
             }
           });
         });
       });
+ // Add navigation button handlers
+  const prevImagesBtn = document.getElementById('prevImagesBtn');
+  const nextImagesBtn = document.getElementById('nextImagesBtn');
+  
+  prevImagesBtn.addEventListener('click', () => {
+    if (currentIndex >= 3) {
+      currentIndex -= 3;
+      selectedImageId = null; // Reset selected image
+      renderImages();
+      renderSequenceList();
+    }
+  });
+  
+  nextImagesBtn.addEventListener('click', () => {
+    if (currentIndex + 3 < images.length) {
+      currentIndex += 3;
+      selectedImageId = null; // Reset selected image
+      renderImages();
+      renderSequenceList();
+    }
+  });
+
+
      // ✅ Setup notification toggle here (ensure DOM is ready)
   const notificationBtn = document.getElementById('notificationBtn');
   const notificationPanel = document.getElementById('notificationPanel');
@@ -1194,11 +1299,16 @@ function getOverlayDataForImage(imageId) {
       });
       
       // Save and run button
-     document.getElementById("saveRunBtn").addEventListener("click", async () => {
-    await saveParameters(); // Save parameters before redirect
-    window.location.href = "simulationResult.html"; // Redirect to the correct file
-    alert('Sequence saved and running!');
-  });
+    document.getElementById("saveRunBtn").addEventListener("click", async () => {
+  await saveParameters(); // Save parameters before redirect
+  showSuccessModal("Sequence saved and running!");
+  
+  // Delay navigation by 1.5s so user sees modal
+  setTimeout(() => {
+    window.location.href = "simulationResult.html";
+  }, 1500);
+});
+
       
 
       logoutBtn.addEventListener('click', () => {
@@ -1210,7 +1320,8 @@ function getOverlayDataForImage(imageId) {
       // Apply changes button
       applyChangesBtn.addEventListener('click', () => {
         saveParameters();
-        alert('Parameters applied successfully!');
+        showSuccessModal("Parameters applied successfully!");
+
       });
       
       // Close notification panel when clicking outside
@@ -1364,30 +1475,48 @@ const badge = document.getElementById('notificationBadge');
 
 applyChangesBtn.addEventListener('click', async () => {
   const selected = images.find(img => img.id === selectedImageId);
-  if (!selected) return alert("Please select an image.");
+  if (!selected) {
+    showToast("Please select an image.", "warning");
+    return;
+  }
 
   const params = getParametersFromForm();
   const validationErrors = validateParameters(params);
 
   if (validationErrors.length > 0) {
-    alert("Validation Errors:\n" + validationErrors.join("\n"));
+    showToast("Validation Errors: " + validationErrors.join(". "), "error");
     return;
   }
 
-  const overlayData = getOverlayDataForImage(selectedImage.id);
-selectedImage.parameters = parameters;
-selectedImage.overlay = overlayData; 
-
+  const overlayData = getOverlayDataForImage(selectedImageId);
+  selected.parameters = params;
+  selected.overlay = overlayData; 
 
   await saveParameters(); 
- await loadSavedParameters();
-  // renderImages(); 
-    const canvasEl = document.querySelector(`[data-image-id="${selectedImageId}"]`);
+  await loadSavedParameters();
+  
+  // Update the displayed parameters in the image card immediately
+  const imageCard = document.getElementById(selectedImageId).parentElement;
+  const infoContainer = imageCard.querySelector('.image-info');
+  if (infoContainer) {
+    infoContainer.innerHTML = `
+      <div class="flex justify-between">
+        <span>FOV: ${params.geometry.fov}mm</span>
+        <span>Matrix: ${params.geometry.matrixSize}</span>
+      </div>
+      <div class="flex justify-between mt-1">
+        <span>TR: ${params.sequence.tr}ms</span>
+        <span>TE: ${params.sequence.te}ms</span>
+      </div>
+    `;
+  }
+  
+  // Update canvas overlay if needed
+  const canvasEl = document.querySelector(`[data-image-id="${selectedImageId}"]`);
   if (canvasEl?._fabric) {
     const canvas = canvasEl._fabric;
     const rect = canvas.getObjects('rect')[0];
-    if (rect) {
-      // 🔄 Update rect values so it doesn't visually reset
+    if (rect && overlayData) {
       rect.set({
         left: overlayData.left,
         top: overlayData.top,
@@ -1399,8 +1528,7 @@ selectedImage.overlay = overlayData;
     }
   }
  
-  alert("Parameters applied successfully!");
- 
+  showToast("Parameters applied successfully!", "success");
 });
 
 
@@ -1498,6 +1626,84 @@ function highlightSuggestedParameters(suggestedParams) {
         }
     }
 }
+
+// Toast notification system to replace alerts
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  
+  let icon = '';
+  switch (type) {
+    case 'success':
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+      break;
+    case 'error':
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+      break;
+    case 'warning':
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+      break;
+    default:
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+  }
+  
+  toast.innerHTML = `
+    <div class="toast-icon">${icon}</div>
+    <div class="toast-message">${message}</div>
+    <div class="toast-progress">
+      <div class="toast-progress-bar"></div>
+    </div>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Animate progress bar
+  const progressBar = toast.querySelector('.toast-progress-bar');
+  progressBar.style.transition = `width ${duration}ms linear`;
+  
+  // Force a reflow so the initial state is applied before we change it
+  void toast.offsetWidth;
+  
+  // Add show class to trigger animation
+  toast.classList.add('show');
+  
+  // Animate progress bar to 0 width
+  setTimeout(() => {
+    progressBar.style.width = '0%';
+  }, 10);
+  
+  // Remove toast after duration
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      container.removeChild(toast);
+    }, 300);
+  }, 5000);
+}
+
+function showSuccessModal(message = "Parameters applied successfully!") {
+  const modal = document.getElementById('successModal');
+  const msgBox = document.getElementById('successModalMessage');
+  msgBox.textContent = message;
+  modal.classList.remove('hidden');
+}
+
+function closeSuccessModal() {
+  document.getElementById('successModal').classList.add('hidden');
+}
+
   </script>
+  <!-- Success Modal -->
+<div id="successModal" class="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 hidden">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
+    <h2 class="text-lg font-semibold text-gray-800 mb-2">MRI Simulator</h2>
+    <p class="text-gray-700 mb-4" id="successModalMessage">Parameters applied successfully!</p>
+    <button onclick="closeSuccessModal()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring">OK</button>
+  </div>
+</div>
+
 </body>
 </html>
