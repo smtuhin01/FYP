@@ -801,17 +801,18 @@
 
 async function loadImages() {
   try {
-    const response = await fetch('http://localhost:5001/api/admin/media?category=Brain&mediaType=image', {
+    const response = await fetch(`http://localhost:5001/api/admin/media?category=${CATEGORY}&mediaType=image`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
+    
     const data = await response.json();
-    images = data.map((img, index) => ({
-      id: img._id || `img-${index}`,
-      name: img.name || img.filename,
-      path: `http://localhost:5001/brain/${img.filename}`,
-      parameters: {
+    images = data.map(img => ({
+      id: img._id,
+      name: img.name,
+      path: `http://localhost:5001/${img.category.toLowerCase()}/${img.filename}`,
+      parameters: img.parameters || {
         geometry: {
           fov: 250,
           matrixSize: "256×256",
@@ -828,6 +829,7 @@ async function loadImages() {
         }
       }
     }));
+    
     renderImages();
   } catch (err) {
     console.error('Error loading images:', err);

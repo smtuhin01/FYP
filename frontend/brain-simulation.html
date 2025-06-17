@@ -800,32 +800,40 @@
     let images = [];
 
 async function loadImages() {
-  const response = await fetch('http://localhost:5001/api/admin/media?category=Brain&mediaType=image', {
-    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-  });
-  const data = await response.json();
-  images = data.map(img => ({
-    id: img._id,
-    name: img.name,
-    path: `http://localhost:5001/brain/${img.filename}`,
-    parameters: {
-      geometry: {
-        fov: 250,
-        matrixSize: "256×256",
-        sliceThickness: 3,
-        sliceGap: 0,
-        planeOrientation: "Axial",
-        foldoverDirection: "Left-Right"
-      },
-      sequence: {
-        tr: 500,
-        te: 20,
-        flipAngle: 90,
-        pulseSequence: "T1-Weighted"
+  try {
+    const response = await fetch(`http://localhost:5001/api/admin/media?category=${CATEGORY}&mediaType=image`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
-    }
-  }));
-  renderImages();
+    });
+    
+    const data = await response.json();
+    images = data.map(img => ({
+      id: img._id,
+      name: img.name,
+      path: `http://localhost:5001/${img.category.toLowerCase()}/${img.filename}`,
+      parameters: img.parameters || {
+        geometry: {
+          fov: 250,
+          matrixSize: "256×256",
+          sliceThickness: 3,
+          sliceGap: 0,
+          planeOrientation: "Axial",
+          foldoverDirection: "Left-Right"
+        },
+        sequence: {
+          tr: 500,
+          te: 20,
+          flipAngle: 90,
+          pulseSequence: "T1-Weighted"
+        }
+      }
+    }));
+    
+    renderImages();
+  } catch (err) {
+    console.error('Error loading images:', err);
+  }
 }
 
 // Call loadImages() on page load instead of initializing images from a static list
