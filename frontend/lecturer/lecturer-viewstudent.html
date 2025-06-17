@@ -345,9 +345,17 @@
       container.appendChild(overlay);
     }
 
+    // Update the createImageCard function to prevent duplicate cards:
     function createImageCard(data) {
+      // Check if card already exists for this image
+      const existingCard = document.querySelector(`[data-image-id="${data.imageId}"]`);
+      if (existingCard) {
+          return null; // Skip if card already exists
+      }
+
       const card = document.createElement('div');
       card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg';
+      card.setAttribute('data-image-id', data.imageId); // Add identifier
 
       const imageContainer = document.createElement('div');
       imageContainer.className = 'image-container';
@@ -399,6 +407,7 @@
       return card;
     }
 
+    // Update the init function:
     async function init() {
       try {
         // Fetch and display student info
@@ -407,23 +416,29 @@
           document.getElementById('studentInfo').textContent = `Student: ${studentInfo.name} (${studentInfo.email})`;
         }
         
+        // Clear viewer before adding new cards
+        const viewer = document.getElementById('imageViewer');
+        viewer.innerHTML = '';
+
         // Fetch and display student images
         const data = await fetchStudentImages();
-        const viewer = document.getElementById('imageViewer');
-
         if (!data || data.length === 0) {
           viewer.innerHTML = '<div class="w-full text-center py-12 text-gray-500">No simulation data found for this student</div>';
           return;
         }
 
-        // Clear viewer
-        viewer.innerHTML = '';
-
-        // Create cards for each image
+        // Create cards only once for each unique image
+        const processedImages = new Set();
         data.forEach((imageData) => {
-          const card = createImageCard(imageData);
-          viewer.appendChild(card);
+          if (!processedImages.has(imageData.imageId)) {
+            const card = createImageCard(imageData);
+            if (card) {
+              viewer.appendChild(card);
+              processedImages.add(imageData.imageId);
+            }
+          }
         });
+
       } catch (error) {
         console.error('Error in initialization:', error);
         document.getElementById('imageViewer').innerHTML =
