@@ -99,10 +99,19 @@
     }
     
     .modal-container {
-      background-color: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
+      max-width: 28rem;
+      transition: transform 0.3s ease-out;
+    }
+
+    .modal-container {
+      transform: scale(0.95);
+      opacity: 0;
+      transition: all 0.3s ease-out;
+    }
+
+    .modal-backdrop:not(.hidden) .modal-container {
+      transform: scale(1);
+      opacity: 1;
     }
     
     .form-input:focus {
@@ -154,6 +163,20 @@
       border-radius: 9999px;
     }
     
+    #lecturerAvatar {
+      text-transform: uppercase;
+      font-size: 2rem;
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      color: white;
+      width: 5rem;
+      height: 5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+    }
+
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -166,6 +189,18 @@
     .status-active {
       background-color: #d1fae5;
       color: #065f46;
+    }
+    
+    .status-badge.status-active {
+      background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+      color: white;
+      padding: 0.375rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
     }
     
     .loading-spinner {
@@ -188,11 +223,8 @@
           <h1 class="text-xl font-bold ml-3">MRI Simulator Admin</h1>
         </div>
         
-        <nav class="flex space-x-6">
-          <a href="adminDashboard.html" class="nav-link">Dashboard</a>
-          <a href="adminManageStudent.html" class="nav-link">Students</a>
-          <a href="adminManageLecturer.html" class="nav-link nav-active">Lecturers</a>
-          <a href="adminManageMedia.html" class="nav-link">Media</a>
+        
+  
           <button id="logoutBtn" class="btn-danger ml-6 px-4 py-2 text-white rounded-lg flex items-center">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -203,19 +235,6 @@
       </div>
     </div>
   </header>
-  
-  <!-- Mobile Navigation (shows only on small screens) -->
-  <div class="bg-white shadow-md md:hidden">
-    <div class="container mx-auto px-4 py-2">
-      <div class="flex justify-between overflow-x-auto">
-        <a href="adminDashboard.html" class="whitespace-nowrap px-3 py-2 text-sm font-medium text-gray-600">Dashboard</a>
-        <a href="adminManageStudent.html" class="whitespace-nowrap px-3 py-2 text-sm font-medium text-gray-600">Students</a>
-        <a href="adminManageLecturer.html" class="whitespace-nowrap px-3 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Lecturers</a>
-        <a href="adminManageMedia.html" class="whitespace-nowrap px-3 py-2 text-sm font-medium text-gray-600">Media</a>
-      </div>
-    </div>
-  </div>
-
   <!-- Main Content -->
   <main class="container mx-auto px-4 py-6">
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -342,39 +361,53 @@
   
   <!-- View Lecturer Details Modal -->
   <div id="viewLecturerModal" class="modal-backdrop fixed inset-0 flex items-center justify-center z-50 hidden">
-    <div class="modal-container w-full max-w-md mx-4 p-6">
+    <div class="modal-container w-full max-w-md mx-4 p-6 bg-white rounded-lg">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold text-gray-900">Lecturer Details</h3>
+        <h3 class="text-xl font-semibold text-gray-900">Lecturer Details</h3>
         <button class="text-gray-400 hover:text-gray-600 close-modal">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
-      <div class="space-y-4 mb-4">
-        <div class="flex items-center justify-center mb-4">
-          <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-3xl font-semibold" id="lecturerAvatar">JS</div>
+
+      <div class="flex flex-col items-center mb-6">
+        <div class="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+          <span id="lecturerAvatar" class="text-3xl font-semibold text-blue-600"></span>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500">Name</label>
-          <p id="viewName" class="font-medium text-gray-900 mt-1"></p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500">Email</label>
-          <p id="viewEmail" class="font-medium text-gray-900 mt-1"></p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500">Account Created</label>
-          <p id="viewCreatedAt" class="font-medium text-gray-900 mt-1"></p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500">Status</label>
-          <p id="viewStatus" class="mt-1"></p>
+        
+        <div class="w-full space-y-4">
+          <div class="border-b border-gray-200 pb-4">
+            <label class="text-sm font-medium text-gray-500">Full Name</label>
+            <p id="viewName" class="text-lg font-semibold text-gray-900 mt-1"></p>
+          </div>
+
+          <div class="border-b border-gray-200 pb-4">
+            <label class="text-sm font-medium text-gray-500">Email Address</label>
+            <p id="viewEmail" class="text-lg font-medium text-gray-900 mt-1"></p>
+          </div>
+
+          <div class="border-b border-gray-200 pb-4">
+            <label class="text-sm font-medium text-gray-500">Account Created</label>
+            <p id="viewCreatedAt" class="text-base text-gray-900 mt-1"></p>
+          </div>
+
+          <div class="pb-4">
+            <label class="text-sm font-medium text-gray-500">Status</label>
+            <div id="viewStatus" class="mt-2"></div>
+          </div>
         </div>
       </div>
+
       <div class="flex justify-between pt-4 border-t border-gray-200">
-        <button id="viewLecturerPortalBtn" class="btn-primary px-4 py-2 text-white rounded-md">View Portal</button>
-        <button type="button" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 close-modal">Close</button>
+        <button id="viewLecturerPortalBtn" class="btn-primary px-6 py-2 text-white rounded-lg flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          View Portal
+        </button>
+        <button class="px-4 py-2 text-gray-600 hover:text-gray-800 close-modal">Close</button>
       </div>
     </div>
   </div>
@@ -604,9 +637,78 @@
       });
       
       // View lecturer portal
-      document.getElementById('viewLecturerPortalBtn').addEventListener('click', function() {
+      document.getElementById('viewLecturerPortalBtn').addEventListener('click', async function() {
         const id = this.getAttribute('data-id');
-        window.location.href = `lecturer-dashboard.html?lecturerId=${id}`;
+        const email = document.getElementById('viewEmail').textContent;
+        const button = this;
+        
+        try {
+          // Show loading state
+          button.disabled = true;
+          button.innerHTML = `
+            <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Accessing...
+          `;
+
+          // Get admin token
+          const adminToken = localStorage.getItem('adminToken');
+          if (!adminToken) {
+            throw new Error('Admin authentication required');
+          }
+
+          // Request lecturer portal access
+          const response = await fetch('http://localhost:5001/api/admin/lecturer-portal-access', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({
+              lecturerId: id,
+              email: email
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.message || 'Failed to access lecturer portal');
+          }
+
+          // Clear any existing lecturer tokens
+          localStorage.removeItem('lecturerToken');
+          
+          // Store the new lecturer token
+          localStorage.setItem('lecturerToken', data.token);
+          
+          // Close modal
+          document.getElementById('viewLecturerModal').classList.add('hidden');
+
+          // Show success message
+          showNotification('Accessing lecturer portal...', 'success');
+
+          // Redirect to lecturer dashboard
+          setTimeout(() => {
+            window.location.href = '../lecturer/lecturer-dashboard.html';
+          }, 1000);
+
+        } catch (error) {
+          console.error('Portal access error:', error);
+          showNotification(error.message || 'Failed to access lecturer portal', 'error');
+          
+          // Reset button state
+          button.disabled = false;
+          button.innerHTML = `
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            View Portal
+          `;
+        }
       });
     }
     

@@ -117,7 +117,6 @@
           <a href="adminDashboard.html" class="nav-link nav-active px-2 py-1 text-white hover:text-white font-medium">Dashboard</a>
           <a href="adminManageStudent.html" class="nav-link px-2 py-1 text-blue-100 hover:text-white">Students</a>
           <a href="adminManageLecturer.html" class="nav-link px-2 py-1 text-blue-100 hover:text-white">Lecturers</a>
-          <a href="adminManageMedia.html" class="nav-link px-2 py-1 text-blue-100 hover:text-white">Media</a>
         </nav>
         
         <button id="logoutBtn" class="logout-btn bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center space-x-2">
@@ -137,7 +136,6 @@
         <a href="adminDashboard.html" class="whitespace-nowrap px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600">Dashboard</a>
         <a href="adminManageStudent.html" class="whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-700">Students</a>
         <a href="adminManageLecturer.html" class="whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-700">Lecturers</a>
-        <a href="adminManageMedia.html" class="whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-700">Media</a>
       </div>
     </div>
   </div>
@@ -205,33 +203,6 @@
         </div>
       </div>
       
-      <!-- Media Card -->
-      <div class="card bg-white rounded-xl shadow-md hover:shadow-xl overflow-hidden">
-        <div class="px-6 py-5">
-          <div class="flex items-center mb-4">
-            <div class="stat-icon stat-media mr-4">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-sm font-medium text-gray-600">Media Resources</p>
-              <h3 class="text-2xl font-bold text-gray-900 stat-value" id="mediaCount">
-                <span class="animate-pulse">Loading...</span>
-              </h3>
-            </div>
-          </div>
-        </div>
-        <div class="bg-gray-50 px-6 py-3">
-          <a href="adminManageMedia.html" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
-            <span>Manage Media</span>
-            <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
-      </div>
-      
       <!-- System Status Card -->
       <div class="card bg-white rounded-xl shadow-md hover:shadow-xl overflow-hidden">
         <div class="px-6 py-5">
@@ -251,51 +222,6 @@
         </div>
         <div class="bg-gray-50 px-6 py-3">
           <p id="lastChecked" class="text-sm text-gray-500">Last checked: Checking...</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Recent Activities Section -->
-    <div class="mt-8">
-      <h3 class="text-lg font-medium text-gray-900 mb-4">Recent System Activity</h3>
-      <div class="bg-white shadow-md rounded-xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Login</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Admin</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Just now</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Successful</span>
-                </td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Student Added</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Admin</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 hours ago</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Successful</span>
-                </td>
-              </tr>
-              <tr>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Media Upload</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Admin</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Yesterday</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Successful</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
     </div>
@@ -340,10 +266,9 @@
     const headers = { 'Authorization': `Bearer ${token}` };
 
     try {
-      const [studentsRes, lecturersRes, mediaRes] = await Promise.all([
+      const [studentsRes, lecturersRes] = await Promise.all([
         fetch('http://localhost:5001/api/admin/students', { headers }),
-        fetch('http://localhost:5001/api/admin/lecturers', { headers }),
-        fetch('http://localhost:5001/api/admin/media', { headers })
+        fetch('http://localhost:5001/api/admin/lecturers', { headers })
       ]);
 
       if (studentsRes.ok) {
@@ -356,11 +281,6 @@
         document.getElementById('lecturerCount').textContent = lecturers.length;
       }
 
-      if (mediaRes.ok) {
-        const media = await mediaRes.json();
-        document.getElementById('mediaCount').textContent = media.length;
-      }
-
       document.getElementById('systemStatus').innerHTML = `
         <span class="text-green-600 font-bold">Active</span>
       `;
@@ -370,7 +290,6 @@
       console.error('Error fetching dashboard data:', error);
       document.getElementById('studentCount').textContent = '-';
       document.getElementById('lecturerCount').textContent = '-';
-      document.getElementById('mediaCount').textContent = '-';
       document.getElementById('systemStatus').innerHTML = `
         <span class="text-red-600 font-bold">Error</span>
       `;
