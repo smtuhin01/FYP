@@ -5,32 +5,6 @@ const { verifyToken } = require('../middleware/authMiddleware');
 const { verifyAdmin } = require('../middleware/adminMiddleware');
 const multer = require('multer');
 const { GridFsStorage } = require('multer-gridfs-storage');
-const crypto = require('crypto');
-const path = require('path');
-const mongoose = require('mongoose');
-
-// Log MongoDB URI availability and value
-console.log('MONGO_URI available:', !!process.env.MONGO_URI);
-
-// Configure GridFS storage
-const storage = new GridFsStorage({
-  url: process.env.MONGO_URI,
-  options: { useNewUrlParser: true, useUnifiedTopology: true },
-  file: (req, file) => {
-    return {
-      bucketName: 'media',
-      filename: `${Date.now()}-${file.originalname}`
-    };
-  }
-});
-
-// Configure multer
-const upload = multer({ 
-  storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  }
-});
 
 // Admin auth routes
 router.post('/login', adminController.login);
@@ -47,6 +21,15 @@ router.put('/lecturers/:id', verifyToken, verifyAdmin, adminController.updateLec
 router.delete('/lecturers/:id', verifyToken, verifyAdmin, adminController.deleteLecturer);
 
 // Media routes
+const storage = new GridFsStorage({
+  url: process.env.MONGO_URI,
+  file: (req, file) => ({
+    filename: Date.now() + '-' + file.originalname,
+    bucketName: 'uploads'
+  })
+});
+const upload = multer({ storage });
+
 router.post('/media', 
   verifyToken, 
   verifyAdmin, 

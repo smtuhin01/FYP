@@ -11,7 +11,7 @@ const mediaSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Brain', 'Spine', 'Abdominal', 'Cardiac']
+    enum: ['Brain', 'Spine', 'Abdominal']
   },
   mediaType: {
     type: String,

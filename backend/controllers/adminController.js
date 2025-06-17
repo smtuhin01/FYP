@@ -198,14 +198,20 @@ exports.uploadMedia = async (req, res) => {
 
     const { name, category, mediaType } = req.body;
     const parameters = req.body.parameters ? JSON.parse(req.body.parameters) : {};
-    
-    // Determine the appropriate storage folder based on category and media type
+
+    // Ensure category and mediaType are present
+    if (!category || !mediaType) {
+      return res.status(400).json({ message: "Category and mediaType are required." });
+    }
+
+    // Determine storagePath
     let storagePath;
     if (mediaType === 'video') {
-      storagePath = 'Video'; // All videos go to the Video folder
-    } else {
-      // Images go to their category folder (lowercase)
+      storagePath = 'Video';
+    } else if (category) {
       storagePath = category.toLowerCase();
+    } else {
+      storagePath = 'misc';
     }
 
     // Move the file to the appropriate folder
@@ -235,11 +241,17 @@ exports.uploadMedia = async (req, res) => {
       thumbnailFilename: thumbnailFile,
       category,
       mediaType,
-      parameters
+      parameters,
+      storagePath // <-- this must always be set
     });
 
-    await media.save();
-    res.status(201).json(media);
+    try {
+      await media.save();
+      res.status(201).json({ message: "Media uploaded successfully", media });
+    } catch (err) {
+      console.error("Error saving media:", err);
+      res.status(500).json({ message: "Failed to save media", error: err.message });
+    }
   } catch (error) {
     console.error('Error uploading media:', error);
     res.status(500).json({ message: 'Server error during media upload' });

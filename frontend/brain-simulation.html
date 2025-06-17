@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MRI Simulation Interface</title>
+  <title>MRI Brain Simulation </title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
@@ -411,12 +411,92 @@
       box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
       transform: translateY(-1px);
     }
+
+    /* Toast styles */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.toast {
+  min-width: 280px;
+  max-width: 350px;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.5rem;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-success {
+  background: linear-gradient(to right, #10b981, #059669);
+  color: white;
+  border-left: 5px solid #064e3b;
+}
+
+.toast-error {
+  background: linear-gradient(to right, #ef4444, #dc2626);
+  color: white;
+  border-left: 5px solid #7f1d1d;
+}
+
+.toast-info {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  color: white;
+  border-left: 5px solid #1e40af;
+}
+
+.toast-warning {
+  background: linear-gradient(to right, #f59e0b, #d97706);
+  color: white;
+  border-left: 5px solid #92400e;
+}
+
+.toast-icon {
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex-grow: 1;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.toast-progress-bar {
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  width: 100%;
+}
   </style>
 </head>
 <body>
   <header class="app-header">
     <div class="container mx-auto px-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-gray-800">MRI Simulation Interface</h1>
+      <h1 class="text-2xl font-bold text-gray-800">MRI Cardic Simulation </h1>
       <div class="flex items-center gap-4">
         <button id="saveRunBtn" class="btn btn-primary flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -462,10 +542,7 @@
   </header>
 
   <main class="container mx-auto px-4 pb-12">
-    <div class="mb-6">
-      <h2 class="text-2xl font-semibold text-gray-800 mb-2">MRI Cardiac Simulation</h2>
-      <p class="text-gray-600 max-w-3xl">Configure and visualize how different MRI acquisition parameters affect cardiac image quality. The simulation helps understand the relationship between MRI settings and resulting images.</p>
-    </div>
+   
 
     <!-- Image Viewer Section -->
     <div class="mb-8">
@@ -473,12 +550,12 @@
         <div class="card-header">
           <h3 class="text-lg font-semibold">Image Viewer</h3>
           <div class="flex space-x-2">
-            <button class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Previous images">
+            <button id="prevImagesBtn" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Previous images">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Next images">
+            <button id="nextImagesBtn" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Next images">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -703,6 +780,8 @@
     <span>Logout</span>
   </button>
 
+  <div id="toast-container" class="toast-container"></div>
+
   <script>
     // Keep all existing script content unchanged
     function parseJwt(token) {
@@ -718,46 +797,43 @@
     }
 
     // Image data
-    const imageFiles = [
-      "2CH_801_7_thumb.jpg", "2CH_RT_1101_10_thumb.jpg", "3CH_1001_9_thumb.jpg", "4ch_701_6_thumb.jpg",
-  "Axial_BB_edited_301_5_thumb.jpg", "Axial_stack_201_3_thumb.jpg", "EGE_2CH_2101_39_thumb.jpg",
-  "EGE_3CH_2201_40_thumb.jpg", "EGE_4CH_2001_38_thumb.jpg", "EGE_SAX_1901_37_thumb.jpg",
-  "eLGE_BASE_SAX_PSIR_TFE_3002_49_thumb.jpg", "LGE_2C_2601_43_thumb.jpg", "LGE_3C_2701_44_thumb.jpg",
-  "LGE_4C_2501_42_thumb.jpg", "LGE_SAX_2401_41_thumb.jpg","rest_perfusion_test_1801_36_thumb.jpg", "SA_901_8_thumb.jpg",
-  "sTFE_GRID_BH_1201_11_thumb.jpg", "sTFE_GRID_BH_1301_12_thumb.jpg", "sTFE_GRID_BH_1401_13_thumb.jpg",
-  "T1_enhanced_2801_45_thumb.jpg", "T1_enhanced_2801_46_thumb.jpg", "T1_native_1501_14_thumb.jpg",
-  "T1_native_1501_15_thumb.jpg", "T2_MAPPING_1601_19_thumb.jpg", "T2_MAPPING_1601_20_thumb.jpg",
-  "T2_MAPPING_1601_21_thumb.jpg", "T2_MAPPING_1601_22_thumb.jpg", "T2_MAPPING_1601_23_thumb.jpg",
-  "T2_MAPPING_1601_24_thumb.jpg", "T2_MAPPING_1601_25_thumb.jpg", "T2_MAPPING_1601_26_thumb.jpg",
-  "T2_MAPPING_1601_27_thumb.jpg", "T2_MAPPING_1601_28_thumb.jpg", "T2_MAPPING_1601_29_thumb.jpg",
-  "T2_MAPPING_1601_30_thumb.jpg", "T2_MAPPING_1601_31_thumb.jpg", "T2_MAPPING_1601_32_thumb.jpg",
-  "T2_MAPPING_1601_33_thumb.jpg", "T2_MAPPING_1601_34_thumb.jpg"
-    ];
+    let images = [];
 
-    // Initialize images with default parameters
-    const images = imageFiles.map((file, index) => ({
-  id: `img-${index}`,
-  name: file.replace("_thumb.jpg", "").replace(/_/g, " "),
-  path: `http://localhost:5001/cardic/${file}`, 
-  parameters: {
-    geometry: {
-      fov: 250,
-      matrixSize: "256×256",
-      sliceThickness: 3,
-      sliceGap: 0,
-      planeOrientation: "Axial",
-      foldoverDirection: "Left-Right"
-    },
-    sequence: {
-      tr: 500,
-      te: 20,
-      flipAngle: 90,
-      pulseSequence: "T1-Weighted"
+async function loadImages() {
+  const response = await fetch('http://localhost:5001/api/admin/media?category=Brain&mediaType=image', {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  });
+  const data = await response.json();
+  images = data.map(img => ({
+    id: img._id,
+    name: img.name,
+    path: `http://localhost:5001/brain/${img.filename}`,
+    parameters: {
+      geometry: {
+        fov: 250,
+        matrixSize: "256×256",
+        sliceThickness: 3,
+        sliceGap: 0,
+        planeOrientation: "Axial",
+        foldoverDirection: "Left-Right"
+      },
+      sequence: {
+        tr: 500,
+        te: 20,
+        flipAngle: 90,
+        pulseSequence: "T1-Weighted"
+      }
     }
-  }
-}));
+  }));
+  renderImages();
+}
 
-
+// Call loadImages() on page load instead of initializing images from a static list
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadImages();
+  await loadSavedParameters();
+  setupEventListeners();
+});
     let currentIndex = 0;
     let selectedImageId = null;
     const token = localStorage.getItem('token');
@@ -1146,9 +1222,9 @@ function getOverlayDataForImage(imageId) {
     // Setup event listeners
     function setupEventListeners() {
       // Tab switching
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          const tabId = tab.getAttribute('data-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+       const tabId = tab.getAttribute('data-tab');
           
           // Update active tab
           tabs.forEach(t => t.classList.remove('active'));
@@ -1156,13 +1232,36 @@ function getOverlayDataForImage(imageId) {
           
           // Show corresponding tab content
           tabContents.forEach(content => {
-            content.classList.remove('active');
-            if (content.id === `${tabId}Tab`) {
-              content.classList.add('active');
+        content.classList.remove('active');
+        if (content.id === `${tabId}Tab`) {
+          content.classList.add('active');
             }
           });
         });
       });
+ // Add navigation button handlers
+  const prevImagesBtn = document.getElementById('prevImagesBtn');
+  const nextImagesBtn = document.getElementById('nextImagesBtn');
+  
+  prevImagesBtn.addEventListener('click', () => {
+    if (currentIndex >= 3) {
+      currentIndex -= 3;
+      selectedImageId = null; // Reset selected image
+      renderImages();
+      renderSequenceList();
+    }
+  });
+  
+  nextImagesBtn.addEventListener('click', () => {
+    if (currentIndex + 3 < images.length) {
+      currentIndex += 3;
+      selectedImageId = null; // Reset selected image
+      renderImages();
+      renderSequenceList();
+    }
+  });
+
+
      // ✅ Setup notification toggle here (ensure DOM is ready)
   const notificationBtn = document.getElementById('notificationBtn');
   const notificationPanel = document.getElementById('notificationPanel');
@@ -1194,11 +1293,16 @@ function getOverlayDataForImage(imageId) {
       });
       
       // Save and run button
-     document.getElementById("saveRunBtn").addEventListener("click", async () => {
-    await saveParameters(); // Save parameters before redirect
-    window.location.href = "simulationResult.html"; // Redirect to the correct file
-    alert('Sequence saved and running!');
-  });
+    document.getElementById("saveRunBtn").addEventListener("click", async () => {
+  await saveParameters(); // Save parameters before redirect
+  showSuccessModal("Sequence saved and running!");
+  
+  // Delay navigation by 1.5s so user sees modal
+  setTimeout(() => {
+    window.location.href = "simulationResult.html";
+  }, 1500);
+});
+
       
 
       logoutBtn.addEventListener('click', () => {
@@ -1210,7 +1314,8 @@ function getOverlayDataForImage(imageId) {
       // Apply changes button
       applyChangesBtn.addEventListener('click', () => {
         saveParameters();
-        alert('Parameters applied successfully!');
+        showSuccessModal("Parameters applied successfully!");
+
       });
       
       // Close notification panel when clicking outside
@@ -1364,30 +1469,48 @@ const badge = document.getElementById('notificationBadge');
 
 applyChangesBtn.addEventListener('click', async () => {
   const selected = images.find(img => img.id === selectedImageId);
-  if (!selected) return alert("Please select an image.");
+  if (!selected) {
+    showToast("Please select an image.", "warning");
+    return;
+  }
 
   const params = getParametersFromForm();
   const validationErrors = validateParameters(params);
 
   if (validationErrors.length > 0) {
-    alert("Validation Errors:\n" + validationErrors.join("\n"));
+    showToast("Validation Errors: " + validationErrors.join(". "), "error");
     return;
   }
 
-  const overlayData = getOverlayDataForImage(selectedImage.id);
-selectedImage.parameters = parameters;
-selectedImage.overlay = overlayData; 
-
+  const overlayData = getOverlayDataForImage(selectedImageId);
+  selected.parameters = params;
+  selected.overlay = overlayData; 
 
   await saveParameters(); 
- await loadSavedParameters();
-  // renderImages(); 
-    const canvasEl = document.querySelector(`[data-image-id="${selectedImageId}"]`);
+  await loadSavedParameters();
+  
+  // Update the displayed parameters in the image card immediately
+  const imageCard = document.getElementById(selectedImageId).parentElement;
+  const infoContainer = imageCard.querySelector('.image-info');
+  if (infoContainer) {
+    infoContainer.innerHTML = `
+      <div class="flex justify-between">
+        <span>FOV: ${params.geometry.fov}mm</span>
+        <span>Matrix: ${params.geometry.matrixSize}</span>
+      </div>
+      <div class="flex justify-between mt-1">
+        <span>TR: ${params.sequence.tr}ms</span>
+        <span>TE: ${params.sequence.te}ms</span>
+      </div>
+    `;
+  }
+  
+  // Update canvas overlay if needed
+  const canvasEl = document.querySelector(`[data-image-id="${selectedImageId}"]`);
   if (canvasEl?._fabric) {
     const canvas = canvasEl._fabric;
     const rect = canvas.getObjects('rect')[0];
-    if (rect) {
-      // 🔄 Update rect values so it doesn't visually reset
+    if (rect && overlayData) {
       rect.set({
         left: overlayData.left,
         top: overlayData.top,
@@ -1399,8 +1522,7 @@ selectedImage.overlay = overlayData;
     }
   }
  
-  alert("Parameters applied successfully!");
- 
+  showToast("Parameters applied successfully!", "success");
 });
 
 
@@ -1498,6 +1620,83 @@ function highlightSuggestedParameters(suggestedParams) {
         }
     }
 }
+
+// Toast notification system to replace alerts
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  
+  let icon = '';
+  switch (type) {
+    case 'success':
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+      break;
+    case 'error':
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+      break;
+    case 'warning':
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+      break;
+    default:
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+  }
+  
+  toast.innerHTML = `
+    <div class="toast-icon">${icon}</div>
+    <div class="toast-message">${message}</div>
+    <div class="toast-progress">
+      <div class="toast-progress-bar"></div>
+    </div>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Animate progress bar
+  const progressBar = toast.querySelector('.toast-progress-bar');
+  progressBar.style.transition = `width ${duration}ms linear`;
+  
+  // Force a reflow so the initial state is applied before we change it
+  void toast.offsetWidth;
+  
+  // Add show class to trigger animation
+  toast.classList.add('show');
+  
+  // Animate progress bar to 0 width
+  setTimeout(() => {
+    progressBar.style.width = '0%';
+  }, 10);
+  
+  // Remove toast after duration
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      container.removeChild(toast);
+    }, 300);
+  }, 5000);
+}
+
+function showSuccessModal(message = "Parameters applied successfully!") {
+  const modal = document.getElementById('successModal');
+  const msgBox = document.getElementById('successModalMessage');
+  msgBox.textContent = message;
+  modal.classList.remove('hidden');
+}
+
+function closeSuccessModal() {
+  document.getElementById('successModal').classList.add('hidden');
+}
   </script>
+  <!-- Success Modal -->
+<div id="successModal" class="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 hidden">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
+    <h2 class="text-lg font-semibold text-gray-800 mb-2">MRI Simulator</h2>
+    <p class="text-gray-700 mb-4" id="successModalMessage">Parameters applied successfully!</p>
+    <button onclick="closeSuccessModal()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring">OK</button>
+  </div>
+</div>
+
 </body>
 </html>
