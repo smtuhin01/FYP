@@ -220,7 +220,7 @@
       right: 0;
       top: calc(100% + 0.5rem);
       width: 22rem;
-      z-index: 50;
+      z-index: 1000; /* Increased z-index */
       background-color: white;
       border-radius: 0.5rem;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
@@ -343,6 +343,8 @@
     }
 
     .app-header {
+      position: relative;
+      z-index: 1000; /* Same as notification panel */
       background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(229, 231, 235, 0.5);
@@ -505,7 +507,7 @@
           </svg>
           <span>Run Simulation</span>
         </button>
-        <div class="relative">
+        <div class="relative"> <!-- Add this wrapper -->
           <button id="notificationBtn" class="relative p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -1691,7 +1693,6 @@ function showSuccessModal(message = "Parameters applied successfully!") {
 function closeSuccessModal() {
   document.getElementById('successModal').classList.add('hidden');
 }
-
   </script>
   <!-- Success Modal -->
 <div id="successModal" class="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 hidden">
