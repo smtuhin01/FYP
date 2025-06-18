@@ -1276,6 +1276,16 @@ function getOverlayDataForImage(imageId) {
       // Toggle notification panel
       notificationBtn.addEventListener('click', () => {
         notificationPanel.classList.toggle('show');
+        
+        // Clear the notification count when opening panel
+        if (notificationPanel.classList.contains('show')) {
+          const badge = document.getElementById('notificationBadge');
+          badge.textContent = '0';
+          badge.style.display = 'none';
+          
+          // Mark notifications as read on server
+          markNotificationsAsRead();
+        }
       });
       
       // Close notification panel
@@ -1395,28 +1405,34 @@ function getOverlayDataForImage(imageId) {
 
   async function loadNotifications() {
   const token = localStorage.getItem('token');
-  const res = await fetch('http://localhost:5001/api/lecturer/student/notifications', {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  const notes = await res.json();
+  try {
+    const res = await fetch('http://localhost:5001/api/lecturer/student/notifications', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const notes = await res.json();
 
-  const container = document.getElementById('notificationsList');
-  container.innerHTML = ''; // Clear previous
+    const container = document.getElementById('notificationsList');
+    container.innerHTML = ''; // Clear previous
 
-  notes.forEach(note => {
-    const li = document.createElement('li');
-    li.className = 'notification-item';
-    li.innerHTML = `
-      <p class="text-sm"><strong>${note.lecturerId.name}</strong>: ${note.comment} (${note.mark})</p>
-      <p class="text-xs text-gray-500 mt-1">${new Date(note.createdAt).toLocaleString()}</p>
-    `;
-    container.appendChild(li);
-  });
+    notes.forEach(note => {
+      const li = document.createElement('li');
+      li.className = 'notification-item';
+      li.innerHTML = `
+        <p class="text-sm"><strong>${note.lecturerId?.name || 'Lecturer'}</strong>: ${note.comment} ${note.mark ? `(${note.mark})` : ''}</p>
+        <p class="text-xs text-gray-500 mt-1">${new Date(note.createdAt).toLocaleString()}</p>
+      `;
+      container.appendChild(li);
+    });
 
-const badge = document.getElementById('notificationBadge');
-  badge.textContent = notes.length;
-  badge.style.display = notes.length > 0 ? 'flex' : 'none';
+    // Update badge
+    const badge = document.getElementById('notificationBadge');
+    const unreadCount = notes.filter(note => !note.isRead).length;
+    badge.textContent = unreadCount;
+    badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+  } catch (error) {
+    console.error('Error loading notifications:', error);
   }
+}
 
 
  function validateParameters(parameters) {
@@ -1692,6 +1708,54 @@ function showSuccessModal(message = "Parameters applied successfully!") {
 
 function closeSuccessModal() {
   document.getElementById('successModal').classList.add('hidden');
+}
+
+// Add this new function to mark notifications as read
+async function markNotificationsAsRead() {
+  try {
+    const token = localStorage.getItem('token');
+       await fetch('http://localhost:5001/api/lecturer/student/notifications/read', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error('Error marking notifications as read:', error);
+  }
+}
+
+// Update the loadNotifications function
+async function loadNotifications() {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch('http://localhost:5001/api/lecturer/student/notifications', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const notes = await res.json();
+
+    const container = document.getElementById('notificationsList');
+    container.innerHTML = ''; // Clear previous
+
+    notes.forEach(note => {
+      const li = document.createElement('li');
+      li.className = 'notification-item';
+      li.innerHTML = `
+        <p class="text-sm"><strong>${note.lecturerId?.name || 'Lecturer'}</strong>: ${note.comment} ${note.mark ? `(${note.mark})` : ''}</p>
+        <p class="text-xs text-gray-500 mt-1">${new Date(note.createdAt).toLocaleString()}</p>
+      `;
+      container.appendChild(li);
+    });
+
+    // Update badge
+    const badge = document.getElementById('notificationBadge');
+    const unreadCount = notes.filter(note => !note.isRead).length;
+    badge.textContent = unreadCount;
+    badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+  } catch (error) {
+    console.error('Error loading notifications:', error);
+  }
 }
   </script>
   <!-- Success Modal -->
