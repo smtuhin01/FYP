@@ -9,13 +9,62 @@ const createToken = (id) => {
 
 // Signup 
 exports.signup = async (req, res) => {
-  const { name, email, password } = req.body;
   try {
-    const user = await User.create({ name, email, password });
-    const token = createToken(user._id);
-    res.status(201).json({ token });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    const { name, email, password } = req.body;
+
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: 'Please provide all required fields'
+      });
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: 'Please provide a valid email address'
+      });
+    }
+
+    // Check if email already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({
+        message: 'Email already registered'
+      });
+    }
+
+    // Create new user
+    const user = new User({
+      name,
+      email: email.toLowerCase(),
+      password
+    });
+
+    await user.save();
+
+    // Generate token
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    // Return success response
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful',
+      token
+    });
+
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Registration failed',
+      error: error.message
+    });
   }
 };
 

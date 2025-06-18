@@ -29,21 +29,57 @@ document.addEventListener('DOMContentLoaded', () => {
   if (signupForm) {
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = document.getElementById('signup-name').value;
-      const email = document.getElementById('signup-email').value;
+      
+      // Get form values 
+      const name = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
       const password = document.getElementById('signup-password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
 
-      const res = await fetch(`${API_BASE_URL}/api/auth/signup`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ name, email, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert('Signup successful! Please login.');
-        window.location.href = 'login.html';
-      } else {
-        alert(data.message || 'Signup failed');
+      // Basic validation
+      if (!name || !email || !password) {
+        showAlert('Please fill in all required fields', 'error');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showAlert('Passwords do not match', 'error');
+        return;
+      }
+
+      // Password strength validation
+      if (password.length < 8) {
+        showAlert('Password must be at least 8 characters long', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:5001/api/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            password
+          })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          showAlert('Registration successful! Redirecting to login...', 'success');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+        } else {
+          throw new Error(data.message || 'Registration failed');
+        }
+
+      } catch (error) {
+        console.error('Signup error:', error);
+        showAlert(error.message || 'Registration failed. Please try again.', 'error');
       }
     });
   }
@@ -86,6 +122,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// Helper function for showing alerts
+function showAlert(message, type) {
+  const alertMessage = document.getElementById('alertMessage');
+  if (alertMessage) {
+    alertMessage.textContent = message;
+    alertMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+    
+    if (type === 'error') {
+      alertMessage.classList.add('bg-red-100', 'text-red-700');
+    } else {
+      alertMessage.classList.add('bg-green-100', 'text-green-700');
+    }
+
+    // Hide alert after 5 seconds
+    setTimeout(() => {
+      alertMessage.classList.add('hidden');
+    }, 5000);
+  }
+}
 
 function logout() {
   localStorage.removeItem('token');
