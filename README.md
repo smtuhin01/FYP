@@ -6,21 +6,20 @@ A web-based platform for managing MRI simulation access, authentication, and edu
 
 ## 🚀 Features
 
-- 🔐 **Authentication System** for Students, Lecturers, and Admins
-- 📚 **Role-based Dashboards**
-- 📁 Media Upload & Categorization (Video/Brain/Spine/Cardiac/Abdominal)
-- 📊 Student Activity Management
-- 🧑‍🏫 Lecturer Access & Token-Based Login
-- 📬 Email Integration (Password Reset)
-- 🎯 Real-time Portal Redirection with Secure JWT Authorization
-- 🌐 Hosted locally on `http://localhost:5001` or your defined port
+- 🔐 **Authentication System** for Students, Lecturers, and Admins  
+- 📚 **Role-based Dashboards**  
+- 📁 Media Upload & Categorization (Video/Brain/Spine/Cardiac/Abdominal)  
+- 📊 Student Activity Management  
+- 🧑‍🏫 Lecturer Access & Token-Based Login  
+- 📬 Email Integration (Password Reset)  
+- 🎯 Real-time Portal Redirection with Secure JWT Authorization  
+- 🌐 Hosted locally on `http://localhost:5001` or your defined port  
 
 ---
 
 ## 📂 Project Structure
 
 ```
-
 tuhin-fyp/
 │
 ├── public/                   # Frontend static files
@@ -46,20 +45,19 @@ tuhin-fyp/
 ├── server.js                 # Main server file
 ├── .env                      # Environment variables
 └── package.json
-
-````
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Node.js + Express
-- **Database**: MongoDB (with Mongoose)
-- **Frontend**: HTML5, CSS3 (Tailwind), Vanilla JS
-- **File Upload**: `multer` with local storage
-- **Auth**: JWT + bcryptjs
-- **Email**: Nodemailer
-- **Security**: CORS, environment isolation
+- **Backend**: Node.js + Express  
+- **Database**: MongoDB (with Mongoose)  
+- **Frontend**: HTML5, CSS3 (Tailwind), Vanilla JS  
+- **File Upload**: `multer` with local disk storage  
+- **Auth**: JWT + bcryptjs  
+- **Email**: Nodemailer  
+- **Security**: CORS, dotenv, JWT  
 
 ---
 
@@ -69,10 +67,9 @@ tuhin-fyp/
    ```bash
    git clone git@github.com:smtuhin01/FYP.git
    cd FYP
-````
+   ```
 
 2. **Install Dependencies**
-
    ```bash
    npm install
    ```
@@ -88,14 +85,12 @@ tuhin-fyp/
    ```
 
 4. **Run the Server**
-
    ```bash
-   npm run dev    # with nodemon (recommended for development)
-   npm start      # plain node
+   npm run dev    # with nodemon (recommended)
+   npm start      # production mode
    ```
 
 5. **Access in Browser**
-
    ```
    http://localhost:5001/
    ```
@@ -105,13 +100,13 @@ tuhin-fyp/
 ## 📌 API Endpoints
 
 | Method | Endpoint                    | Description                       |
-| ------ | --------------------------- | --------------------------------- |
-| POST   | `/api/auth/login`           | Student login                     |
-| POST   | `/api/auth/signup`          | Student signup                    |
-| POST   | `/api/admin/login`          | Admin login                       |
-| GET    | `/api/admin/students`       | View all students (admin)         |
-| POST   | `/api/admin/media`          | Upload file (admin, `multipart`)  |
-| POST   | `/api/admin/lecturer-login` | Generate temporary lecturer token |
+|--------|-----------------------------|-----------------------------------|
+| POST   | /api/auth/login             | Student login                     |
+| POST   | /api/auth/signup            | Student signup                    |
+| POST   | /api/admin/login            | Admin login                       |
+| GET    | /api/admin/students         | View all students (admin)         |
+| POST   | /api/admin/media            | Upload file (admin, `multipart`)  |
+| POST   | /api/admin/lecturer-login   | Generate temporary lecturer token |
 
 ---
 
