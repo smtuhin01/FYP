@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | MRI Simulator</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-image: linear-gradient(to right bottom, rgba(37, 99, 235, 0.8), rgba(79, 70, 229, 0.8)), 
+                        url('../picture/Background\ photo.jpg');
+      background-size: cover;
+      background-position: center;
+      min-height: 100vh;
+    }
+    
+    .login-card {
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      border-radius: 14px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .login-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
+    
+    .form-input {
+      transition: all 0.3s ease;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+    }
+    
+    .form-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      outline: none;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(to right, #2563eb, #4f46e5);
+      transition: all 0.3s ease;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(59, 130, 246, 0.25);
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 10px rgba(59, 130, 246, 0.35);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: white;
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
+    }
+    
+    .input-icon {
+      color: #6b7280;
+      transition: color 0.3s ease;
+    }
+    
+    .form-input:focus + .input-icon {
+      color: #3b82f6;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    .error-shake {
+      animation: shake 0.4s ease-in-out;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center p-4">
+<!-- Header -->
+<header class="bg-white bg-opacity-90 shadow-md fixed top-0 left-0 w-full z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Nav Links -->
+      <nav class="space-x-4 text-sm font-medium">
+        <a href="login.html" class="text-gray-700 hover:text-blue-600 transition">Student</a>
+        <a href="lecturer/lecturer-login.html" class="text-gray-700 hover:text-blue-600 transition">Lecturer</a>
+        <a href="admin/admin-login.html" class="text-gray-700 hover:text-blue-600 transition">Admin</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- Spacer for fixed header -->
+<div class="h-16"></div>
+
+  <div class="login-card max-w-md w-full px-8 py-10">
+    <div class="flex flex-col items-center mb-8">
+      <div class="logo">
+        <img src="../picture/logo192.png" alt="MRI Simulator Admin Logo" class="w-full h-full object-contain">
+      </div>
+      <h2 class="text-3xl font-bold text-gray-800">Admin Portal</h2>
+      <p class="text-gray-600 mt-2 text-center">Secure login to manage the MRI Simulator platform</p>
+    </div>
+    
+    <div id="errorMessage" class="hidden bg-red-50 text-red-600 p-4 rounded-lg mb-6 font-medium text-center border border-red-200 error-shake"></div>
+    
+    <form id="admin-loginForm" class="space-y-6">
+      <div class="space-y-2">
+        <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+        <div class="relative">
+          <input 
+            type="text" 
+            id="username" 
+            class="form-input w-full pl-12 py-3" 
+            placeholder="Enter admin username"
+            required
+          >
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-6 w-6 input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="space-y-2">
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <div class="relative">
+          <input 
+            type="password" 
+            id="password" 
+            class="form-input w-full pl-12 py-3" 
+            placeholder="Enter secure password"
+            required
+          >
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-6 w-6 input-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn-primary w-full py-3 text-white font-medium text-sm uppercase tracking-wider flex items-center justify-center space-x-2">
+        <span>Secure Login</span>
+        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </form>
+    
+    <div class="mt-8 text-center">
+      <p class="text-sm text-gray-600">
+        MRI Simulator Administrative Access
+      </p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('admin-loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorMessage = document.getElementById('errorMessage');
+      
+      try {
+        const response = await fetch(`${window.location.origin}/api/admin/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Show success animation
+          document.querySelector('.login-card').style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            document.querySelector('.login-card').style.transform = 'scale(1)';
+            // Store token and redirect to dashboard
+            localStorage.setItem('adminToken', data.token);
+            window.location.href = 'admin-dashboard.html';
+          }, 200);
+        } else {
+          // Show error message with animation
+          errorMessage.textContent = data.message || 'Invalid credentials';
+          errorMessage.classList.remove('hidden');
+          errorMessage.classList.add('error-shake');
+          setTimeout(() => {
+            errorMessage.classList.remove('error-shake');
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        errorMessage.textContent = 'Server connection error. Please try again.';
+        errorMessage.classList.remove('hidden');
+        errorMessage.classList.add('error-shake');
+        setTimeout(() => {
+          errorMessage.classList.remove('error-shake');
+        }, 500);
+      }
+    });
+    
+    // Improve interactivity with focus effects
+    const inputs = document.querySelectorAll('.form-input');
+    inputs.forEach(input => {
+      input.addEventListener('focus', () => {
+        input.parentElement.classList.add('ring-2', 'ring-blue-100', 'ring-opacity-50');
+      });
+      input.addEventListener('blur', () => {
+        input.parentElement.classList.remove('ring-2', 'ring-blue-100', 'ring-opacity-50');
+      });
+    });
+  </script>
+  <script>
+  const base = window.location.origin;
+
+  // Elements and their attributes to adjust
+  const elementsToFix = [
+    { selector: 'a', attr: 'href' },
+    { selector: 'img', attr: 'src' },
+    { selector: 'video', attr: 'src' },
+    { selector: 'source', attr: 'src' },
+    { selector: 'script', attr: 'src' },
+    { selector: 'link', attr: 'href' }
+  ];
+
+  elementsToFix.forEach(({ selector, attr }) => {
+    document.querySelectorAll(selector).forEach(el => {
+      const val = el.getAttribute(attr);
+      if (val && !val.startsWith('http') && !val.startsWith('mailto') && !val.startsWith('#') && !val.startsWith('data:')) {
+        el.setAttribute(attr, `${base}/${val.replace(/^\/+/, '')}`);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

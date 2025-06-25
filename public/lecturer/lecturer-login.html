@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecturer Login | MRI Simulator</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: linear-gradient(to right bottom, rgba(37, 99, 235, 0.8), rgba(16, 185, 129, 0.8)), 
+                        url('../picture/Background\ photo.jpg');
+      background-size: cover;
+      background-position: center;
+      min-height: 100vh;
+    }
+    
+    .login-card {
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transform: translateY(0);
+      transition: all 0.3s ease;
+    }
+    
+    .login-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .form-input {
+      transition: all 0.2s ease;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .form-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(to right, #2563eb, #10b981);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      background-color: white;
+      padding: 12px;
+      border-radius: 50%;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px;
+      position: relative;
+      animation: float 4s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+  </style>
+</head>
+
+<body class="flex items-center justify-center p-4">
+<!-- Header -->
+<header class="bg-white bg-opacity-90 shadow-md fixed top-0 left-0 w-full z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Nav Links -->
+      <nav class="space-x-4 text-sm font-medium">
+        <a href="login.html" class="text-gray-700 hover:text-blue-600 transition">Student</a>
+        <a href="lecturer/lecturer-login.html" class="text-gray-700 hover:text-blue-600 transition">Lecturer</a>
+        <a href="admin/admin-login.html" class="text-gray-700 hover:text-blue-600 transition">Admin</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- Spacer for fixed header -->
+<div class="h-16"></div>
+
+  <div class="max-w-md w-full login-card px-8 py-10">
+    <div class="flex flex-col items-center mb-6">
+      <div class="logo">
+        <img src="../picture/logo192.png" alt="MRI Simulator Logo" class="w-full h-full object-contain">
+      </div>
+      <h2 class="text-3xl font-bold text-gray-800">Lecturer Login</h2>
+      <p class="text-gray-600 mt-2 text-center">Welcome back! Please enter your credentials to access the lecturer portal.</p>
+    </div>
+    
+    <form id="lecturerLoginForm" class="space-y-6">
+      <div class="space-y-1">
+        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          class="form-input w-full px-4 py-3 rounded-lg" 
+          placeholder="name@institution.com"
+          required
+        >
+      </div>
+      
+      <div class="space-y-1">
+        <div class="flex items-center justify-between">
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <a href="lecturer/lecturer-reset-password.html" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
+            Forgot Password?
+          </a>
+        </div>
+        <input 
+          type="password" 
+          id="password" 
+          class="form-input w-full px-4 py-3 rounded-lg" 
+          placeholder="••••••••"
+          required
+        >
+      </div>
+      
+      <div class="pt-2">
+        <button type="submit" class="btn-primary w-full py-3 rounded-lg text-white font-medium text-sm uppercase tracking-wider">
+          Sign In
+        </button>
+      </div>
+      
+      <div class="flex items-center pt-2">
+        <div class="flex-grow h-px bg-gray-300"></div>
+        <span class="px-4 text-sm text-gray-500 font-medium">OR</span>
+        <div class="flex-grow h-px bg-gray-300"></div>
+      </div>
+      
+      <div class="text-center space-y-2">
+        <p class="text-gray-600">Don't have an account?</p>
+        <a href="lecturer/lecturer-register.html" class="btn-primary inline-block w-full py-3 rounded-lg text-white font-medium text-sm uppercase tracking-wider text-center">
+          Register New Account
+        </a>
+      </div>
+    </form>
+    
+    <!-- Alert for error messages -->
+    <div id="alertMessage" class="hidden mt-4 p-4 rounded-lg bg-red-100 text-red-700">
+      An error occurred. Please try again.
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('lecturerLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const alertMessage = document.getElementById('alertMessage');
+      
+      try {
+        const res = await fetch(`${window.location.origin}/api/lecturer/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('lecturerToken', data.token);
+          window.location.href = 'lecturer-dashboard.html';
+        } else {
+          alertMessage.textContent = data.message || 'Invalid credentials. Please try again.';
+          alertMessage.classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        alertMessage.textContent = 'Connection error. Please check your internet connection and try again.';
+        alertMessage.classList.remove('hidden');
+      }
+    });
+  </script>
+  <script>
+  const base = window.location.origin;
+
+  // Elements and their attributes to adjust
+  const elementsToFix = [
+    { selector: 'a', attr: 'href' },
+    { selector: 'img', attr: 'src' },
+    { selector: 'video', attr: 'src' },
+    { selector: 'source', attr: 'src' },
+    { selector: 'script', attr: 'src' },
+    { selector: 'link', attr: 'href' }
+  ];
+
+  elementsToFix.forEach(({ selector, attr }) => {
+    document.querySelectorAll(selector).forEach(el => {
+      const val = el.getAttribute(attr);
+      if (val && !val.startsWith('http') && !val.startsWith('mailto') && !val.startsWith('#') && !val.startsWith('data:')) {
+        el.setAttribute(attr, `${base}/${val.replace(/^\/+/, '')}`);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

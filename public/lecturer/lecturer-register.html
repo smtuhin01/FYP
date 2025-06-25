@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecturer Registration | MRI Simulator</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: linear-gradient(to right bottom, rgba(37, 99, 235, 0.8), rgba(16, 185, 129, 0.8)), 
+                        url('../picture/Background\ photo.jpg');
+      background-size: cover;
+      background-position: center;
+      min-height: 100vh;
+    }
+    
+    .register-card {
+      backdrop-filter: blur(10px);
+      background-color: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transform: translateY(0);
+      transition: all 0.3s ease;
+    }
+    
+    .register-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .form-input {
+      transition: all 0.2s ease;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .form-input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(to right, #2563eb, #10b981);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      background-color: white;
+      padding: 12px;
+      border-radius: 50%;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px;
+      position: relative;
+      animation: float 4s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .password-strength {
+      height: 5px;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    
+    .strength-weak { width: 33%; background-color: #ef4444; }
+    .strength-medium { width: 66%; background-color: #f59e0b; }
+    .strength-strong { width: 100%; background-color: #10b981; }
+  </style>
+</head>
+
+<body class="flex items-center justify-center p-4">
+<!-- Header -->
+<header class="bg-white bg-opacity-90 shadow-md fixed top-0 left-0 w-full z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Nav Links -->
+      <nav class="space-x-4 text-sm font-medium">
+        <a href="login.html" class="text-gray-700 hover:text-blue-600 transition">Student</a>
+        <a href="lecturer/lecturer-login.html" class="text-gray-700 hover:text-blue-600 transition">Lecturer</a>
+        <a href="admin/admin-login.html" class="text-gray-700 hover:text-blue-600 transition">Admin</a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- Spacer for fixed header -->
+<div class="h-16"></div>
+
+  <div class="max-w-md w-full register-card px-8 py-10 my-6">
+    <div class="flex flex-col items-center mb-6">
+      <div class="logo">
+        <img src="../picture/logo192.png" alt="MRI Simulator Logo" class="w-full h-full object-contain">
+      </div>
+      <h2 class="text-3xl font-bold text-gray-800">Lecturer Registration</h2>
+      <p class="text-gray-600 mt-2 text-center">Create your account to access the MRI Simulator lecturer portal.</p>
+    </div>
+    
+    <form id="lecturerRegisterForm" class="space-y-5">
+      <div class="space-y-1">
+        <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          class="form-input w-full px-4 py-3 rounded-lg" 
+          placeholder="Dr. Jane Smith"
+          required
+        >
+      </div>
+      
+      <div class="space-y-1">
+        <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          class="form-input w-full px-4 py-3 rounded-lg" 
+          placeholder="name@institution.com"
+          required
+        >
+      </div>
+      
+      <div class="space-y-1">
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          class="form-input w-full px-4 py-3 rounded-lg" 
+          placeholder="••••••••"
+          required
+          minlength="8"
+        >
+        <div class="mt-2 bg-gray-200 rounded-full overflow-hidden">
+          <div id="passwordStrength" class="password-strength"></div>
+        </div>
+        <p id="passwordHint" class="text-xs text-gray-500 mt-1">Password should be at least 8 characters</p>
+      </div>
+      
+      <div class="space-y-1">
+        <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+        <input 
+          type="password" 
+          id="confirmPassword" 
+          class="form-input w-full px-4 py-3 rounded-lg" 
+          placeholder="••••••••"
+          required
+        >
+      </div>
+      
+      <div class="pt-2">
+        <button type="submit" class="btn-primary w-full py-3 rounded-lg text-white font-medium text-sm uppercase tracking-wider">
+          Create Account
+        </button>
+      </div>
+      
+      <div class="text-center pt-4">
+        <p class="text-gray-600">Already have an account?</p>
+        <a href="lecturer/lecturer-login.html" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+          Sign in to your account
+        </a>
+      </div>
+    </form>
+    
+    <!-- Alert for messages -->
+    <div id="alertMessage" class="hidden mt-4 p-4 rounded-lg"></div>
+  </div>
+
+  <script>
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const passwordStrength = document.getElementById('passwordStrength');
+    const passwordHint = document.getElementById('passwordHint');
+    const alertMessage = document.getElementById('alertMessage');
+    
+    // Password strength meter
+    passwordInput.addEventListener('input', function() {
+      const value = this.value;
+      
+      // Clear strength indicator
+      passwordStrength.className = 'password-strength';
+      
+      if (value.length === 0) {
+        return;
+      }
+      
+      // Simple password strength logic
+      if (value.length < 8) {
+        passwordStrength.classList.add('strength-weak');
+        passwordHint.textContent = 'Password is too short';
+      } else if (value.length >= 8 && (!/[A-Z]/.test(value) || !/[0-9]/.test(value))) {
+        passwordStrength.classList.add('strength-medium');
+        passwordHint.textContent = 'Add uppercase letters and numbers for stronger password';
+      } else {
+        passwordStrength.classList.add('strength-strong');
+        passwordHint.textContent = 'Strong password';
+      }
+    });
+    
+    // Form submission
+    document.getElementById('lecturerRegisterForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+      
+      // Validation
+      if (password !== confirmPassword) {
+        showAlert('Passwords do not match', 'error');
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${window.location.origin}/api/lecturer/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          showAlert('Registration successful! Redirecting to login...', 'success');
+          setTimeout(() => {
+            window.location.href = 'lecturer-login.html';
+          }, 2000);
+        } else {
+          showAlert(data.message || 'Registration failed', 'error');
+        }
+      } catch (err) {
+        console.error('Registration error:', err);
+        showAlert('Connection error. Please check your internet connection and try again.', 'error');
+      }
+    });
+    
+    function showAlert(message, type) {
+      alertMessage.textContent = message;
+      alertMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+      
+      if (type === 'error') {
+        alertMessage.classList.add('bg-red-100', 'text-red-700');
+      } else if (type === 'success') {
+        alertMessage.classList.add('bg-green-100', 'text-green-700');
+      }
+    }
+  </script>
+  <script>
+  const base = window.location.origin;
+
+  // Elements and their attributes to adjust
+  const elementsToFix = [
+    { selector: 'a', attr: 'href' },
+    { selector: 'img', attr: 'src' },
+    { selector: 'video', attr: 'src' },
+    { selector: 'source', attr: 'src' },
+    { selector: 'script', attr: 'src' },
+    { selector: 'link', attr: 'href' }
+  ];
+
+  elementsToFix.forEach(({ selector, attr }) => {
+    document.querySelectorAll(selector).forEach(el => {
+      const val = el.getAttribute(attr);
+      if (val && !val.startsWith('http') && !val.startsWith('mailto') && !val.startsWith('#') && !val.startsWith('data:')) {
+        el.setAttribute(attr, `${base}/${val.replace(/^\/+/, '')}`);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

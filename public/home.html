@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MRI Simulator - Learning Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #10b981;
+      --accent: #6366f1;
+      --light: #f8fafc;
+      --dark: #1e293b;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-image: url('./picture/Background photo.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      min-height: 100vh;
+      position: relative;
+      color: var(--dark);
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.9) 0%, rgba(79, 70, 229, 0.85) 100%);
+      z-index: -1;
+    }
+
+    .header {
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 2rem;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Roboto Slab', serif;
+    }
+    
+    .main-title {
+      color: white;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      letter-spacing: 0.5px;
+    }
+    
+    .subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.1rem;
+      font-weight: 300;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    .anatomy-card {
+      background-color: white;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      position: relative;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .anatomy-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-img-container {
+      overflow: hidden;
+      position: relative;
+      padding-top: 65%; /* aspect ratio */
+    }
+
+    .card-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .anatomy-card:hover .card-img {
+      transform: scale(1.05);
+    }
+
+    .anatomy-info {
+      padding: 1.25rem;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .anatomy-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 0.5rem;
+      font-family: 'Roboto Slab', serif;
+    }
+
+    .anatomy-description {
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+      flex-grow: 1;
+    }
+
+    .status-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .available {
+      background-color: #10b981;
+      color: white;
+    }
+
+    .coming-soon {
+      background-color: #f59e0b;
+      color: white;
+    }
+
+    .start-btn {
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(to right, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .start-btn:hover {
+      background: linear-gradient(to right, var(--primary-dark), var(--accent));
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .start-btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    
+    .user-menu {
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 50px;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .user-menu:hover {
+      background-color: rgba(255, 255, 255, 0.25);
+    }
+    
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background-color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .info-banner {
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .info-icon {
+      background-color: rgba(219, 234, 254, 0.5);
+      color: var(--primary);
+      border-radius: 50%;
+      padding: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .learning-progress {
+      height: 8px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      width: 25%;
+      background: linear-gradient(to right, #10b981, #34d399);
+      border-radius: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 1rem;
+      }
+      
+      .main-content {
+        padding-top: 6rem;
+      }
+      
+      .info-banner {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body class="pb-12">
+  <!-- Header -->
+  <header class="header">
+    <div class="container mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white rounded-lg p-1.5">
+          <img src="picture/logo192.png" alt="MRI Simulator Logo" class="w-full h-full object-contain">
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-white">MRI Simulator</h1>
+          <div class="text-xs text-blue-100">Student Learning Portal</div>
+        </div>
+      </div>
+      
+      <div class="user-menu" onclick="showUserMenu()">
+        <div class="user-avatar" id="userInitial">S</div>
+        <div class="hidden sm:block">
+          <div class="text-sm font-medium" id="userName">Student</div>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 pt-24 pb-8">
+    <!-- Welcome Section -->
+    <section class="text-center mb-8">
+      <h1 class="text-3xl md:text-4xl main-title mb-3">Welcome to the MRI Learning Experience</h1>
+      <p class="subtitle mb-6">Explore realistic MRI simulations to understand imaging parameters and techniques in different anatomical regions.</p>
+      
+      <div class="learning-progress" title="Course progress">
+        <div class="progress-bar" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+    </section>
+    
+    <!-- Info Banner -->
+    <div class="info-banner">
+      <div class="info-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-white font-medium mb-1">Did you know?</h3>
+        <p class="text-blue-100 text-sm">MRI simulators help students grasp complex concepts by providing hands-on experience with parameter adjustments and their effects on image quality.</p>
+      </div>
+    </div>
+
+    <!-- Anatomy Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Cardiac Card -->
+      <div class="anatomy-card">
+        <div class="card-img-container">
+          <img src="./picture/Cardic.webp" alt="Cardiac" class="card-img" />
+          <span class="status-badge available">Available</span>
+        </div>
+        <div class="anatomy-info">
+          <h3 class="anatomy-name">Cardiac</h3>
+          <p class="anatomy-description">Learn cardiac MRI techniques including CINE sequences, perfusion studies, and flow quantification. Understand the unique challenges of imaging a moving organ.</p>
+          <button class="start-btn" onclick="startSimulation('cardic')">
+            Start Learning
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Spine Card -->
+      <div class="anatomy-card">
+        <div class="card-img-container">
+          <img src="./picture/spine.jpeg" alt="Spine" class="card-img" />
+          <span class="status-badge coming-soon">Coming Soon</span>
+        </div>
+        <div class="anatomy-info">
+          <h3 class="anatomy-name">Spine</h3>
+          <p class="anatomy-description">Explore spine imaging protocols including T1, T2 and STIR sequences. Learn how to optimize visualization of vertebral bodies, spinal cord and neural foramina.</p>
+          <button class="start-btn" onclick="startSimulation('spine')">
+            Start Learning
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Abdominal Card -->
+      <div class="anatomy-card">
+        <div class="card-img-container">
+          <img src="./picture/abdominal.jpg" alt="Abdomen" class="card-img" />
+          <span class="status-badge coming-soon">Coming Soon</span>
+        </div>
+        <div class="anatomy-info">
+          <h3 class="anatomy-name">Abdominal</h3>
+          <p class="anatomy-description">Master abdominal MRI protocols, including breath-hold techniques, fat saturation, and dynamic contrast enhancement for organ assessment.</p>
+          <button class="start-btn" onclick="startSimulation('abdominal')">
+            Start Learning
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Brain Card -->
+      <div class="anatomy-card">
+        <div class="card-img-container">
+          <img src="./picture/Brain.jpeg" alt="Brain" class="card-img" />
+          <span class="status-badge coming-soon">Coming Soon</span>
+        </div>
+        <div class="anatomy-info">
+          <h3 class="anatomy-name">Brain</h3>
+          <p class="anatomy-description">Study neuroimaging protocols to visualize brain anatomy and pathology. Learn about DWI, FLAIR, SWI and other advanced sequences.</p>
+          <button class="start-btn" onclick="startSimulation('brain')">
+            Start Learning
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center mt-8 text-white text-sm opacity-80 px-4">
+    <p>© 2025 MRI Simulator - Making Medical Education Fun & Engaging</p>
+  </footer>
+
+  <!-- User Menu Dropdown (hidden by default) -->
+  <div id="userDropdown" class="hidden absolute right-4 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 py-1 z-50" style="top: 70px;">
+    
+    <div class="border-t border-gray-100 my-1"></div>
+    <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100" onclick="logout()">Logout</a>
+  </div>
+
+  <script>
+    // Check if user is logged in when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Try to get user data from token
+      try {
+        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+        if (tokenPayload.name) {
+          document.getElementById('userName').textContent = tokenPayload.name;
+          document.getElementById('userInitial').textContent = tokenPayload.name.charAt(0).toUpperCase();
+        }
+      } catch (error) {
+        console.error('Error parsing token:', error);
+      }
+    });
+
+    function showUserMenu() {
+      const dropdown = document.getElementById('userDropdown');
+      dropdown.classList.toggle('hidden');
+      
+      // Close the dropdown when clicking outside
+      document.addEventListener('click', function closeDropdown(e) {
+        if (!dropdown.contains(e.target) && !e.target.closest('.user-menu')) {
+          dropdown.classList.add('hidden');
+          document.removeEventListener('click', closeDropdown);
+        }
+      });
+    }
+
+    tuhin/fyp-old-version/frontend/home.html
+function startSimulation(type) {
+  switch(type) {
+    case 'cardic':
+      window.location.href = 'simulation.html';
+      break;
+    case 'spine':
+      window.location.href = 'spine-simulation.html';
+      break;
+    case 'abdominal':
+      window.location.href = 'abdominal-simulation.html';
+      break;
+    case 'brain':
+      window.location.href = 'brain-simulation.html';
+      break;
+  }
+}
+
+    function logout() {
+      localStorage.removeItem('token'); 
+      window.location.href = 'login.html'; 
+    }
+  </script>
+  <script>
+  const base = window.location.origin;
+
+  // Elements and their attributes to adjust
+  const elementsToFix = [
+    { selector: 'a', attr: 'href' },
+    { selector: 'img', attr: 'src' },
+    { selector: 'video', attr: 'src' },
+    { selector: 'source', attr: 'src' },
+    { selector: 'script', attr: 'src' },
+    { selector: 'link', attr: 'href' }
+  ];
+
+  elementsToFix.forEach(({ selector, attr }) => {
+    document.querySelectorAll(selector).forEach(el => {
+      const val = el.getAttribute(attr);
+      if (val && !val.startsWith('http') && !val.startsWith('mailto') && !val.startsWith('#') && !val.startsWith('data:')) {
+        el.setAttribute(attr, `${base}/${val.replace(/^\/+/, '')}`);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

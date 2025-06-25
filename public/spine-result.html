@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <title>Spine MRI Simulation Results</title>
+    <!-- Copy styles from simulationResult.html -->
+    <style>
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #f5f5f5;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .container {
+        display: flex;
+        height: 100vh;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+        width: 400px;
+        background-color: white;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .sidebar-header h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    .tabs {
+        display: flex;
+        margin-top: 10px;
+    }
+
+    .tab {
+        padding: 6px 0;
+        font-size: 14px;
+        color: #666;
+        margin-right: 20px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .tab.active {
+        color: #1a73e8;
+        border-bottom-color: #1a73e8;
+    }
+
+    .sequence-count {
+        color: #666;
+        font-size: 13px;
+        padding: 15px 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .video-list {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+
+    .video-item {
+        display: flex;
+        padding: 15px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .video-item:hover {
+        background-color: #f9f9f9;
+    }
+
+    .video-item.active {
+        background-color: #e8f0fe;
+    }
+
+    .video-info {
+        flex-grow: 1;
+    }
+
+    .video-name {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .video-meta {
+        font-size: 12px;
+        color: #666;
+    }
+
+    /* Main Content Styles */
+    .main-content {
+        flex-grow: 1;
+        background-color: #000;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .video-container {
+        flex-grow: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+
+    video {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .video-info-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 15px 20px;
+    }
+
+    .video-title {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .video-details {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: 40%;
+      }
+
+      .main-content {
+        height: 60%;
+      }
+
+      .video-info-overlay {
+        position: static;
+        background: rgba(0, 0, 0, 0.9);
+        margin-top: 10px;
+        text-align: center;
+      }
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Sidebar - Video List -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Spine MRI Sequences</h2>
+                <div class="tabs">
+                    <button class="tab active">Finished sequences</button>  
+                </div>
+            </div>
+            
+            <div class="sequence-count">
+                <span id="sequenceCount"> Pulse sequences</span>
+            </div>
+            
+            <div class="video-list" id="videoList">
+                <!-- Video items will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Right Side - Video Player -->
+        <div class="main-content">
+            <div class="video-container">
+                <video id="mainVideo" controls preload="metadata">
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                
+                <div class="video-info-overlay">
+                    <div class="video-title" id="videoTitle">Select a spine MRI sequence to play</div>
+                    <div class="video-details" id="videoDetails"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="fixed bottom-6 right-6 z-50">
+        <button id="logoutBtn" class="flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white font-semibold px-4 py-2 rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+            </svg>
+            Logout
+        </button>
+    </div>
+    
+    <script>
+  // Video data will be populated from admin uploads
+  let videoData = [];
+  let currentVideoIndex = -1;
+
+  // Initialize the application
+  document.addEventListener("DOMContentLoaded", async () => {
+    await loadVideos();
+    updateSequenceCount();
+    setupLogoutButton();
+  });
+
+  // Load videos from API
+  async function loadVideos() {
+    try {
+      const response = await fetch(`${window.location.origin}/api/admin/media?category=${CATEGORY}&mediaType=video`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const data = await response.json();
+      videoData = data.map(video => ({
+        id: video._id,
+        path: `${window.location.origin}/Video/${video.filename}`,
+        name: video.name,
+        duration: video.duration || "03m 00s",
+        quality: video.quality || "High"
+      }));
+
+      populateVideoList();
+    } catch (error) {
+      console.error('Error loading videos:', error);
+      videoData = [];
+      document.getElementById('videoTitle').textContent = "Error loading videos. Please try again later.";
+    }
+  }
+
+  // Populate the video list
+  function populateVideoList() {
+    const videoList = document.getElementById("videoList");
+    videoList.innerHTML = '';
+    
+    if (videoData.length === 0) {
+      videoList.innerHTML = `
+        <div class="p-4 text-center text-gray-500">
+          No spine MRI videos available
+        </div>
+      `;
+      return;
+    }
+
+    videoData.forEach((video, index) => {
+      const videoItem = document.createElement('div');
+      videoItem.className = 'video-item';
+      videoItem.innerHTML = `
+        <div class="video-info">
+          <div class="video-name">${video.name}</div>
+          <div class="video-meta">${video.duration} · ${video.quality}</div>
+        </div>
+      `;
+      
+      videoItem.addEventListener('click', () => {
+        playVideo(index);
+      });
+      
+      videoList.appendChild(videoItem);
+    });
+  }
+
+  // Update sequence count
+  function updateSequenceCount() {
+    const count = document.getElementById('sequenceCount');
+    count.textContent = `${videoData.length} Pulse sequences`;
+  }
+
+  // Play selected video
+  function playVideo(index) {
+    if (index < 0 || index >= videoData.length) return;
+    
+    currentVideoIndex = index;
+    const video = videoData[index];
+    const mainVideo = document.getElementById('mainVideo');
+    const videoTitle = document.getElementById('videoTitle');
+    const videoDetails = document.getElementById('videoDetails');
+    
+    // Update video source
+    mainVideo.src = video.path;
+    mainVideo.load();
+    mainVideo.play();
+    
+    // Update video info
+    videoTitle.textContent = video.name;
+    videoDetails.textContent = `${video.duration} · ${video.quality}`;
+    
+    // Update active state in list
+    const videoItems = document.querySelectorAll('.video-item');
+    videoItems.forEach((item, i) => {
+      if (i === index) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+  }
+  
+  // Setup logout button
+  function setupLogoutButton() {
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+    });
+  }
+</script>
+<script>
+  const base = window.location.origin;
+
+  // Elements and their attributes to adjust
+  const elementsToFix = [
+    { selector: 'a', attr: 'href' },
+    { selector: 'img', attr: 'src' },
+    { selector: 'video', attr: 'src' },
+    { selector: 'source', attr: 'src' },
+    { selector: 'script', attr: 'src' },
+    { selector: 'link', attr: 'href' }
+  ];
+
+  elementsToFix.forEach(({ selector, attr }) => {
+    document.querySelectorAll(selector).forEach(el => {
+      const val = el.getAttribute(attr);
+      if (val && !val.startsWith('http') && !val.startsWith('mailto') && !val.startsWith('#') && !val.startsWith('data:')) {
+        el.setAttribute(attr, `${base}/${val.replace(/^\/+/, '')}`);
+      }
+    });
+  });
+</script>
+
+
+</body>
+</html>

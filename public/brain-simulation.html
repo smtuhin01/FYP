@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MRI Brain Simulation </title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #3b82f6;
+      --accent: #6366f1;
+      --secondary: #10b981;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      min-height: 100vh;
+      color: var(--gray-800);
+    }
+    
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url('./picture/simulationpage.jpg');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.97) saturate(0.95);
+      opacity: 0.95;
+      z-index: -1;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Roboto Slab', serif;
+    }
+
+    .image-container {
+      position: relative;
+      min-height: 150px;
+      max-height: 300px;
+      overflow: visible !important;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      aspect-ratio: 4/3;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    .overlay-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: auto;
+      z-index: 10;
+    }
+
+    .image-container:hover {
+      transform: scale(1.01);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .image-container img {
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+      position: relative; 
+      z-index: 1;
+    }
+
+    .image-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: linear-gradient(to right, rgba(37, 99, 235, 0.9), rgba(99, 102, 241, 0.85));
+      color: white;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-top-left-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+      z-index: 15;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .image-info {
+      padding: 0.75rem 1rem;
+      background-color: rgba(249, 250, 251, 0.9);
+      backdrop-filter: blur(8px);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--gray-200);
+      color: var(--gray-700);
+      font-weight: 500;
+    }
+
+    .sequence-item {
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      margin-bottom: 0.25rem;
+      border-left: 3px solid transparent;
+    }
+
+    .sequence-item:hover {
+      background-color: var(--gray-100);
+    }
+
+    .sequence-item.active {
+      background-color: rgba(224, 242, 254, 0.8);
+      color: var(--primary-dark);
+      border-left-color: var(--primary);
+    }
+
+    .sequence-item.active-group {
+      border-left-color: var(--primary);
+      background-color: rgba(219, 234, 254, 0.6);
+    }
+
+    .tab {
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      font-weight: 500;
+    }
+
+    .tab::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: transparent;
+      transition: background-color 0.2s ease;
+    }
+
+    .tab:hover::after {
+      background-color: var(--gray-300);
+    }
+
+    .tab.active {
+      color: var(--primary);
+    }
+
+    .tab.active::after {
+      background-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -0.25rem;
+      right: -0.25rem;
+      background-color: #ef4444;
+      color: white;
+      font-size: 0.75rem;
+      border-radius: 9999px;
+      width: 1.25rem;
+      height: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .notification-panel {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 0.5rem);
+      width: 22rem;
+      z-index: 50;
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      display: none;
+      overflow: hidden;
+      animation: slideDown 0.2s ease;
+    }
+    
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notification-panel.show {
+      display: block;
+    }
+
+    .notification-item {
+      border-bottom: 1px solid var(--gray-100);
+      padding: 0.75rem 1rem;
+      transition: background-color 0.15s ease;
+    }
+
+    .notification-item:hover {
+      background-color: var(--gray-50);
+    }
+
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+
+    .sequence-list-container {
+      max-height: 350px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gray-400) transparent;
+    }
+
+    .sequence-list-container::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .sequence-list-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sequence-list-container::-webkit-scrollbar-thumb {
+      background-color: var(--gray-400);
+      border-radius: 20px;
+    }
+
+    .canvas-container {
+      position: absolute !important;
+      min-width: 50%;
+    }
+
+    .chat-message {
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 0.5rem;
+      max-width: 85%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-message {
+      background: linear-gradient(to right, var(--primary), var(--primary-dark));
+      color: white;
+      border-top-right-radius: 0.25rem;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+
+    .assistant-message {
+      background-color: white;
+      color: var(--gray-800);
+      border-top-left-radius: 0.25rem;
+      border: 1px solid var(--gray-200);
+    }
+
+    #chatMessages {
+      padding: 1rem;
+      gap: 0.75rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gray-400) transparent;
+    }
+
+    #chatMessages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #chatMessages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #chatMessages::-webkit-scrollbar-thumb {
+      background-color: var(--gray-400);
+      border-radius: 20px;
+    }
+
+    #chatMessages > div {
+      margin-bottom: 0.75rem;
+    }
+
+    #chatbot {
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .chat-bullet {
+      display: block;
+      padding-left: 1rem;
+      position: relative;
+    }
+
+    .chat-bullet::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+    }
+
+    .app-header {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+      padding: 1rem 0;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.5rem;
+      transition: all 0.15s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+      outline: none;
+    }
+
+    .form-select {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.75rem center;
+      background-repeat: no-repeat;
+      background-size: 1rem;
+      padding-right: 2.5rem;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.625rem 1.25rem;
+      font-weight: 500;
+      border-radius: 0.5rem;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(to right, var(--primary), var(--accent));
+      color: rgb(255, 255, 255);
+    }
+    
+    .btn-primary:hover {
+      box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+      transform: translateY(-1px);
+    }
+
+    /* Toast styles */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.toast {
+  min-width: 280px;
+  max-width: 350px;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0.5rem;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-success {
+  background: linear-gradient(to right, #10b981, #059669);
+  color: white;
+  border-left: 5px solid #064e3b;
+}
+
+.toast-error {
+  background: linear-gradient(to right, #ef4444, #dc2626);
+  color: white;
+  border-left: 5px solid #7f1d1d;
+}
+
+.toast-info {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  color: white;
+  border-left: 5px solid #1e40af;
+}
+
+.toast-warning {
+  background: linear-gradient(to right, #f59e0b, #d97706);
+  color: white;
+  border-left: 5px solid #92400e;
+}
+
+.toast-icon {
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex-grow: 1;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.toast-progress-bar {
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  width: 100%;
+}
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-gray-800">MRI Cardic Simulation </h1>
+      <div class="flex items-center gap-4">
+        <button id="saveRunBtn" class="btn btn-primary flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Run Simulation</span>
+        </button>
+        <div class="relative">
+          <button id="notificationBtn" class="relative p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span id="notificationBadge" class="notification-badge">2</span>
+          </button>
+          <div id="notificationPanel" class="notification-panel">
+            <div class="p-3 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+              <h3 class="text-sm font-medium text-gray-800">Notifications</h3>
+              <button id="closeNotificationsBtn" class="text-gray-500 hover:text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div class="p-0">
+              <ul class="space-y-0 max-h-60 overflow-y-auto" id="notificationsList">
+                <li class="notification-item">
+                  <p class="text-sm font-medium">Please review the T2 FLAIR sequence parameters</p>
+                  <p class="text-xs text-gray-500 mt-1">10:30 AM</p>
+                </li>
+                <li class="notification-item">
+                  <p class="text-sm font-medium">New protocol added to your workspace</p>
+                  <p class="text-xs text-gray-500 mt-1">Yesterday</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 pb-12">
+   
+
+    <!-- Image Viewer Section -->
+    <div class="mb-8">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="text-lg font-semibold">Image Viewer</h3>
+          <div class="flex space-x-2">
+            <button id="prevImagesBtn" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Previous images">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button id="nextImagesBtn" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded" title="Next images">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="imageViewer">
+            <!-- Images will be dynamically inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Pulse Sequence Section -->
+      <div>
+        <div class="card h-full">
+          <div class="card-header">
+            <h3 class="text-lg font-semibold">Pulse Sequences</h3>
+            <button id="toggleSequenceBtn" class="p-1 hover:bg-gray-100 rounded-full">
+              <svg id="collapseIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+              </svg>
+              <svg id="expandIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+          <div id="sequenceContent" class="p-4">
+            <div class="sequence-list-container">
+              <ul id="sequenceList" class="space-y-1">
+                <!-- Sequence items will be dynamically inserted here -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameter Settings Section -->
+      <div class="lg:col-span-2">
+        <div class="card h-full">
+          <div class="card-header">
+            <h3 id="parameterTitle" class="text-lg font-semibold">MRI Parameters</h3>
+            <button id="applyChangesBtn" class="btn bg-blue-100 hover:bg-green-200 text-gray-800 flex items-center gap-2 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Apply Changes
+            </button>
+          </div>
+          
+          <div class="border-b border-gray-200">
+            <div class="flex">
+              <button class="tab active" data-tab="geometry">Geometry</button>
+              <button class="tab" data-tab="sequence">Sequence</button>
+            </div>
+          </div>
+          
+          <div class="p-5">
+            <!-- Geometry Tab Content -->
+            <div id="geometryTab" class="tab-content active">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                  <label for="fov" class="block text-sm font-medium text-gray-700 mb-2">Field of View (FOV)</label>
+                  <div class="flex items-center">
+                    <input id="fov" type="number" min="100" max="500" value="250" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">mm</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Controls the physical size of the imaging area</span>
+                </div>
+                
+                <div>
+                  <label for="matrixSize" class="block text-sm font-medium text-gray-700 mb-2">Matrix Size</label>
+                  <select id="matrixSize" class="form-control form-select">
+                    <option value="128×128">128×128</option>
+                    <option value="256×256" selected>256×256</option>
+                    <option value="512×512">512×512</option>
+                  </select>
+                  <span class="text-xs text-gray-500 mt-1 block">Determines image resolution</span>
+                </div>
+                
+                <div>
+                  <label for="sliceThickness" class="block text-sm font-medium text-gray-700 mb-2">Slice Thickness</label>
+                  <div class="flex items-center">
+                    <input id="sliceThickness" type="number" min="0.5" max="10" step="0.5" value="3" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">mm</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Thickness of each imaging slice</span>
+                </div>
+                
+                <div>
+                  <label for="sliceGap" class="block text-sm font-medium text-gray-700 mb-2">Slice Gap</label>
+                  <div class="flex items-center">
+                    <input id="sliceGap" type="number" min="0" max="5" step="0.1" value="0" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">mm</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Space between adjacent slices</span>
+                </div>
+                
+                <div>
+                  <label for="planeOrientation" class="block text-sm font-medium text-gray-700 mb-2">Plane Orientation</label>
+                  <select id="planeOrientation" class="form-control form-select">
+                    <option value="Axial" selected>Axial</option>
+                    <option value="Coronal">Coronal</option>
+                    <option value="Sagittal">Sagittal</option>
+                  </select>
+                  <span class="text-xs text-gray-500 mt-1 block">Orientation of imaging planes</span>
+                </div>
+                
+                <div>
+                  <label for="foldoverDirection" class="block text-sm font-medium text-gray-700 mb-2">Fold over Direction</label>
+                  <select id="foldoverDirection" class="form-control form-select">
+                    <option value="Left-Right" selected>Left-Right</option>
+                    <option value="Anterior-Posterior">Anterior-Posterior</option>
+                  </select>
+                  <span class="text-xs text-gray-500 mt-1 block">Direction of potential aliasing artifacts</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Sequence Tab Content -->
+            <div id="sequenceTab" class="tab-content">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                  <label for="tr" class="block text-sm font-medium text-gray-700 mb-2">TR (Repetition Time)</label>
+                  <div class="flex items-center">
+                    <input id="tr" type="number" min="300" max="3000" value="500" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">ms</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Time between consecutive pulse sequences</span>
+                </div>
+                
+                <div>
+                  <label for="te" class="block text-sm font-medium text-gray-700 mb-2">TE (Echo Time)</label>
+                  <div class="flex items-center">
+                    <input id="te" type="number" min="10" max="150" value="20" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">ms</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">Time between excitation and signal readout</span>
+                </div>
+                
+                <div>
+                  <label for="flipAngle" class="block text-sm font-medium text-gray-700 mb-2">Flip Angle</label>
+                  <div class="flex items-center">
+                    <input id="flipAngle" type="number" min="0" max="180" value="90" class="form-control">
+                    <span class="ml-2 text-sm text-gray-500">°</span>
+                  </div>
+                  <span class="text-xs text-gray-500 mt-1 block">RF pulse rotation angle</span>
+                </div>
+                
+                <div>
+                  <label for="pulseSequence" class="block text-sm font-medium text-gray-700 mb-2">Pulse Sequence</label>
+                  <select id="pulseSequence" class="form-control form-select">
+                    <option value="T1-Weighted" selected>T1-Weighted</option>
+                    <option value="T2-Weighted">T2-Weighted</option>
+                    <option value="FLAIR">FLAIR</option>
+                    <option value="DWI">DWI</option>
+                    <option value="GRE">GRE</option>
+                  </select>
+                  <span class="text-xs text-gray-500 mt-1 block">Type of pulse sequence determining tissue contrast</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="fixed bottom-6 right-6 flex space-x-4">
+    <button id="assistantBtn" class="btn btn-primary shadow-lg flex items-center space-x-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+      <span>MRI Assistant</span>
+    </button>
+  </div>
+
+  <!-- MRI Assistant Chat Window -->
+  <div id="chatbot" class="fixed bottom-6 right-6 w-96 rounded-xl shadow-2xl z-50 hidden overflow-hidden">
+    <div class="flex justify-between items-center p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+      <div class="flex items-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        <h3 class="text-lg font-semibold">MRI Assistant</h3>
+      </div>
+      <button id="minimizeChatbot" class="hover:bg-white/20 rounded p-1.5 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div id="chatMessages" class="bg-gray-50 overflow-y-auto" style="height: 380px;"></div>
+    
+    <div class="border-t border-gray-200 p-4 bg-white">
+      <form id="chatForm" class="flex space-x-2">
+        <input type="text" id="chatInput" class="flex-1 form-control" placeholder="Ask about MRI parameters...">
+        <button type="submit" class="btn btn-primary !p-2.5 aspect-square">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Minimized Chat Button -->
+  <button id="openChatbot" class="fixed bottom-6 right-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg hidden hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+    </svg>
+  </button>
+
+  <!-- Logout Button -->
+  <button id="logoutBtn" class="fixed bottom-6 left-6 bg-white border border-gray-200 hover:bg-blue-50 text-black-700 px-4 py-2.5 rounded-lg shadow-md transition-all duration-200 flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
+    <span>Logout</span>
+  </button>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script>
+    // Keep all existing script content unchanged
+    function parseJwt(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = decodeURIComponent(atob(base64Url).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(base64);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Image data
+    let images = [];
+
+async function loadImages() {
+  try {
+    const response = await fetch(`${window.location.origin}/api/admin/media?category=${CATEGORY}&mediaType=image`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    
+    const data = await response.json();
+    images = data.map(img => ({
+      id: img._id,
+      name: img.name,
+      path: `${window.location.origin}/${img.category.toLowerCase()}/${img.filename}`,
+      parameters: img.parameters || {
+        geometry: {
+          fov: 250,
+          matrixSize: "256×256",
+          sliceThickness: 3,
+          sliceGap: 0,
+          planeOrientation: "Axial",
+          foldoverDirection: "Left-Right"
+        },
+        sequence: {
+          tr: 500,
+          te: 20,
+          flipAngle: 90,
+          pulseSequence: "T1-Weighted"
+        }
+      }
+    }));
+    
+    renderImages();
+  } catch (err) {
+    console.error('Error loading images:', err);
+  }
+}
+
+// Call loadImages() on page load instead of initializing images from a static list
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadImages();
+  await loadSavedParameters();
+  setupEventListeners();
+});
+    let currentIndex = 0;
+    let selectedImageId = null;
+    const token = localStorage.getItem('token');
+const userInfo = parseJwt(token);
+const userId = userInfo?.id;
+
+
+
+    // DOM elements
+    const imageViewer = document.getElementById('imageViewer');
+    const sequenceList = document.getElementById('sequenceList');
+    const parameterTitle = document.getElementById('parameterTitle');
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationPanel = document.getElementById('notificationPanel');
+    const closeNotificationsBtn = document.getElementById('closeNotificationsBtn');
+    const toggleSequenceBtn = document.getElementById('toggleSequenceBtn');
+    const sequenceContent = document.getElementById('sequenceContent');
+    const collapseIcon = document.getElementById('collapseIcon');
+    const expandIcon = document.getElementById('expandIcon');
+    const saveRunBtn = document.getElementById('saveRunBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const applyChangesBtn = document.getElementById('applyChangesBtn');
+
+    // Tab elements
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    
+
+    // Initialize the UI
+    async function init() {
+  await loadSavedParameters();          
+  renderImages();                    
+  renderSequenceList();
+  setupEventListeners();
+}
+
+
+    async function loadSavedParameters() {
+  if (!userId) return;
+  try {
+    const res = await fetch(`${window.location.origin}/api/parameters/student/${userId}`);
+    const saved = await res.json();
+
+    if (Array.isArray(saved)) {
+      saved.forEach(item => {
+        const image = images.find(img => img.name === item.imageName);
+        if (image) {
+          image.parameters = item.parameters;
+        }
+        if (item.overlay) {
+        image.overlay = item.overlay||null;  // Save overlay data into image object
+}
+
+      });
+    }
+  } catch (err) {
+    console.error('Error loading parameters:', err);
+  }
+}
+
+    // Render the current 3 images
+    function renderImages() {
+      imageViewer.innerHTML = '';
+      
+      const currentImages = images.slice(currentIndex, currentIndex + 3);
+      
+      if (currentImages.length === 0) {
+        imageViewer.innerHTML = '<div class="col-span-3 text-center py-12 text-gray-500">No images to display</div>';
+        return;
+      }
+      
+      currentImages.forEach(image => {
+      const imageCard = document.createElement('div');
+      
+imageCard.className = 'bg-white rounded-lg shadow overflow-hidden ';
+imageCard.innerHTML = `
+  <div id="${image.id}" class="image-container">
+    <div class="image-label">${image.name}</div>
+    <div class="relative w-full h-full flex">
+      <img src="${image.path}" alt="${image.name}" class="w-full h-full object-cover z-0" onerror="this.src='/placeholder.svg?height=256&width=256'">
+      <canvas class="overlay-canvas absolute top-0 left-0 w-full h-full z-10"></canvas>
+    </div>
+  </div>
+  <div class="image-info">
+    <div class="flex justify-between">
+      <span>FOV: ${image.parameters.geometry.fov}mm</span>
+      <span>Matrix: ${image.parameters.geometry.matrixSize}</span>
+    </div>
+    <div class="flex justify-between mt-1">
+      <span>TR: ${image.parameters.sequence.tr}ms</span>
+      <span>TE: ${image.parameters.sequence.te}ms</span>
+    </div>
+  </div>
+`;
+
+const canvasEl = imageCard.querySelector('.overlay-canvas');
+canvasEl.setAttribute('data-image-id', image.id);
+requestAnimationFrame(() => {
+  setupCanvasOverlay(canvasEl, image.overlay);
+});
+
+        // Set the selected image when clicking on an image
+        imageCard.addEventListener('click', () => {
+          selectedImageId = image.id;
+          updateParameterForm(image);
+          parameterTitle.textContent = `Set Parameters - ${image.name}`;
+        });
+        
+        imageViewer.appendChild(imageCard);
+
+      });
+      
+      // Set the first image as selected by default
+      if (currentImages.length > 0 && !selectedImageId) {
+        selectedImageId = currentImages[0].id;
+        updateParameterForm(currentImages[0]);
+        parameterTitle.textContent = `Set Parameters - ${currentImages[0].name}`;
+      }
+    }
+
+function setupCanvasOverlay(canvasEl, overlayData = null) {
+  const parent = canvasEl.parentElement;
+  const img = parent.querySelector('img');
+
+  console.log('Setting up overlay for:', img?.src);
+
+  const updateCanvasSize = () => {
+    // Get actual displayed dimensions of the image
+    const displayWidth = img.clientWidth;
+    const displayHeight = img.clientHeight;
+    
+    console.log('Image display dimensions:', displayWidth, displayHeight);
+
+    if (!displayWidth || !displayHeight) {
+      console.warn('Image dimensions not available yet');
+      return;
+    }
+    
+    // Resize the canvas to match the image's displayed size
+    canvasEl.width = displayWidth;
+    canvasEl.height = displayHeight;
+    
+    const canvas = new fabric.Canvas(canvasEl, {
+      selection: false,
+      backgroundColor: null,
+      preserveObjectStacking: true
+    });
+    
+    const size = Math.min(displayWidth, displayHeight) * 0.9;
+    const safeLeft = Math.max(0, Math.min(displayWidth - (overlayData?.width || size), overlayData?.left ?? (displayWidth - size) / 2));
+    const safeTop = Math.max(0, Math.min(displayHeight - (overlayData?.height || size), overlayData?.top ?? (displayHeight - size) / 2));
+    
+    const rect = new fabric.Rect({
+      left: overlayData?.left ?? (displayWidth - size) / 2,
+      top: overlayData?.top ?? (displayHeight - size) / 2,
+      width: overlayData?.width ?? size,
+      height: overlayData?.height ?? size,
+      angle: overlayData?.angle ?? 0,
+      fill: 'transparent',
+      stroke: 'blue',
+      strokeWidth: 2,
+      hasRotatingPoint: true,
+      cornerColor: 'blue',
+      transparentCorners: false,
+      lockUniScaling: true
+    });
+
+    canvas.add(rect);
+    rect.originalLeft = rect.left;
+    rect.originalTop = rect.top;
+    rect.originalScaleX = rect.scaleX;
+    rect.originalScaleY = rect.scaleY;
+
+    canvasOverlays[canvasEl] = {
+      canvas,
+      originalWidth: displayWidth,
+      originalHeight: displayHeight
+    };
+    
+    canvas.on('object:moving', function(e) {
+      const obj = e.target;
+      obj.setCoords();
+
+      const objWidth = obj.getScaledWidth();
+      const objHeight = obj.getScaledHeight();
+      const canvasWidth = canvas.getWidth();
+      const canvasHeight = canvas.getHeight();
+
+      // Clamp the position
+      if (obj.left < 0) obj.left = 0;
+      if (obj.top < 0) obj.top = 0;
+      if (obj.left + objWidth > canvasWidth) obj.left = canvasWidth - objWidth;
+      if (obj.top + objHeight > canvasHeight) obj.top = canvasHeight - objHeight;
+
+      obj.setCoords();
+    });
+
+    canvas.setWidth(displayWidth);
+    canvas.setHeight(displayHeight);
+    canvas.renderAll();
+
+    canvasEl._fabric = canvas;
+    console.log('Overlay rectangle added to canvas');
+  };
+
+  // Initial setup when image loads
+  img.onload = () => {
+    console.log('Image loaded:', img.src);
+    setTimeout(updateCanvasSize, 50); // Small delay to ensure image is fully rendered
+  };
+
+  // Handle if image is already loaded
+  if (img.complete && img.naturalHeight !== 0) {
+    console.log('Image already loaded, setting up canvas');
+    setTimeout(updateCanvasSize, 50);
+  }
+}
+const canvasOverlays = {}; // Store overlay data by canvasEl
+
+function rescaleCanvas(canvasEl) {
+  const canvas = canvasEl._fabric;
+  const img = canvasEl.parentElement.querySelector('img');
+  if (!canvas || !img) return;
+
+  const newWidth = img.clientWidth;
+  const newHeight = img.clientHeight;
+  const overlayInfo = canvasOverlays[canvasEl];
+
+  if (!overlayInfo) return;
+
+  const scaleX = newWidth / overlayInfo.originalWidth;
+  const scaleY = newHeight / overlayInfo.originalHeight;
+
+  canvas.setWidth(newWidth);
+  canvas.setHeight(newHeight);
+
+  canvas.getObjects().forEach(obj => {
+    obj.set({
+      left: obj.originalLeft * scaleX,
+      top: obj.originalTop * scaleY,
+      scaleX: obj.originalScaleX * scaleX,
+      scaleY: obj.originalScaleY * scaleY
+    }).setCoords();
+  });
+
+  canvas.renderAll();
+}
+window.addEventListener('resize', () => {
+    document.querySelectorAll('.overlay-canvas').forEach(rescaleCanvas);
+  });
+    // Render the sequence list
+    function renderSequenceList() {
+      sequenceList.innerHTML = '';
+      
+      images.forEach((image, index) => {
+        const isActive = index >= currentIndex && index < currentIndex + 3;
+        const isGroupStart = index % 3 === 0;
+        
+        const listItem = document.createElement('li');
+        listItem.className = `sequence-item ${isActive ? 'active' : ''} ${isGroupStart && isActive ? 'active-group' : ''}`;
+        listItem.innerHTML = `
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${isActive ? 'text-blue-500' : 'text-gray-500'}">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span class="text-sm font-medium">${image.name}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            ${isActive ? `
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            ` : ''}
+            <span class="text-xs text-gray-500 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              ${index % 2 === 0 ? '04m 30s' : '03m 45s'}
+            </span>
+          </div>
+        `;
+        
+        listItem.addEventListener('click', () => {
+          // Update to show the group of 3 images starting at the clicked index
+          // Make sure the index is a multiple of 3
+          currentIndex = Math.floor(index / 3) * 3;
+          selectedImageId = null; // Reset selected image
+          renderImages();
+          renderSequenceList();
+        });
+        
+        sequenceList.appendChild(listItem);
+      });
+    }
+
+    // Update the parameter form with the selected image's parameters
+    function updateParameterForm(image) {
+      // Geometry parameters
+      document.getElementById('fov').value = image.parameters.geometry.fov;
+      document.getElementById('matrixSize').value = image.parameters.geometry.matrixSize;
+      document.getElementById('sliceThickness').value = image.parameters.geometry.sliceThickness;
+      document.getElementById('sliceGap').value = image.parameters.geometry.sliceGap;
+      document.getElementById('planeOrientation').value = image.parameters.geometry.planeOrientation;
+      document.getElementById('foldoverDirection').value = image.parameters.geometry.foldoverDirection;
+      
+      // Sequence parameters
+      document.getElementById('tr').value = image.parameters.sequence.tr;
+      document.getElementById('te').value = image.parameters.sequence.te;
+      document.getElementById('flipAngle').value = image.parameters.sequence.flipAngle;
+      document.getElementById('pulseSequence').value = image.parameters.sequence.pulseSequence;
+    }
+
+    // Get parameters from the form
+    function getParametersFromForm() {
+      return {
+        geometry: {
+          fov: Number(document.getElementById('fov').value),
+          matrixSize: document.getElementById('matrixSize').value,
+          sliceThickness: Number(document.getElementById('sliceThickness').value),
+          sliceGap: Number(document.getElementById('sliceGap').value),
+          planeOrientation: document.getElementById('planeOrientation').value,
+          foldoverDirection: document.getElementById('foldoverDirection').value
+        },
+        sequence: {
+          tr: Number(document.getElementById('tr').value),
+          te: Number(document.getElementById('te').value),
+          flipAngle: Number(document.getElementById('flipAngle').value),
+          pulseSequence: document.getElementById('pulseSequence').value
+        }
+      };
+    }
+function getOverlayDataForImage(imageId) {
+  const canvasEl = document.querySelector(`[data-image-id="${imageId}"]`);
+
+  const canvas = canvasEl?._fabric;
+  if (!canvas) return null;
+   canvas.renderAll();
+  const rect = canvas.getObjects('rect')[0];
+  if (!rect) return null;
+
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.width * rect.scaleX,
+    height: rect.height * rect.scaleY,
+    angle: rect.angle
+  };
+}
+
+    // Save parameters for the selected image
+   async function saveParameters() {
+  if (!selectedImageId || !userId) return;
+
+  const selectedImage = images.find(img => img.id === selectedImageId);
+  const parameters = getParametersFromForm();
+  const overlayData = getOverlayDataForImage(selectedImage.id); 
+  selectedImage.parameters = parameters;
+
+  try {
+    await fetch(`${window.location.origin}/api/parameters/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId,
+        imageId: selectedImage.id, 
+        imageName: selectedImage.name,
+        parameters,
+        overlay: overlayData
+      })
+    });
+    // renderImages();
+  } catch (err) {
+    console.error('Error saving parameters:', err);
+    console.log('Overlay data being saved:', overlayData);
+
+  }
+}
+
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Tab switching
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+       const tabId = tab.getAttribute('data-tab');
+          
+          // Update active tab
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          // Show corresponding tab content
+          tabContents.forEach(content => {
+        content.classList.remove('active');
+        if (content.id === `${tabId}Tab`) {
+          content.classList.add('active');
+            }
+          });
+        });
+      });
+ // Add navigation button handlers
+  const prevImagesBtn = document.getElementById('prevImagesBtn');
+  const nextImagesBtn = document.getElementById('nextImagesBtn');
+  
+  prevImagesBtn.addEventListener('click', () => {
+    if (currentIndex >= 3) {
+      currentIndex -= 3;
+      selectedImageId = null; // Reset selected image
+      renderImages();
+      renderSequenceList();
+    }
+  });
+  
+  nextImagesBtn.addEventListener('click', () => {
+    if (currentIndex + 3 < images.length) {
+      currentIndex += 3;
+      selectedImageId = null; // Reset selected image
+      renderImages();
+      renderSequenceList();
+    }
+  });
+
+
+     // ✅ Setup notification toggle here (ensure DOM is ready)
+  const notificationBtn = document.getElementById('notificationBtn');
+  const notificationPanel = document.getElementById('notificationPanel');
+  const closeNotificationsBtn = document.getElementById('closeNotificationsBtn');
+ 
+      
+      // Toggle notification panel
+      notificationBtn.addEventListener('click', () => {
+        notificationPanel.classList.toggle('show');
+      });
+      
+      // Close notification panel
+      closeNotificationsBtn.addEventListener('click', () => {
+        notificationPanel.classList.remove('show');
+      });
+      
+      // Toggle sequence list
+      toggleSequenceBtn.addEventListener('click', () => {
+        const isCollapsed = sequenceContent.classList.contains('hidden');
+        if (isCollapsed) {
+          sequenceContent.classList.remove('hidden');
+          collapseIcon.classList.remove('hidden');
+          expandIcon.classList.add('hidden');
+        } else {
+          sequenceContent.classList.add('hidden');
+          collapseIcon.classList.add('hidden');
+          expandIcon.classList.remove('hidden');
+        }
+      });
+      
+      // Save and run button
+    document.getElementById("saveRunBtn").addEventListener("click", async () => {
+  await saveParameters(); // Save parameters before redirect
+  showSuccessModal("Sequence saved and running!");
+  
+  // Delay navigation by 1.5s so user sees modal
+  setTimeout(() => {
+    window.location.href = "simulationResult.html";
+  }, 1500);
+});
+
+      
+
+      logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('token'); // Clear saved token
+  window.location.href = 'login.html'; // Redirect to login page
+});
+
+      
+      // Apply changes button
+      applyChangesBtn.addEventListener('click', () => {
+        saveParameters();
+        showSuccessModal("Parameters applied successfully!");
+
+      });
+      
+      // Close notification panel when clicking outside
+      document.addEventListener('click', (event) => {
+        if (!notificationBtn.contains(event.target) && !notificationPanel.contains(event.target)) {
+          notificationPanel.classList.remove('show');
+        }
+      });
+    
+    // Initialize chatbot
+    initChatbot();
+    
+    // Add chat form submission handler
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // Add user message
+        addMessageToChat('user', message);
+        chatInput.value = '';
+
+        try {
+            const selectedImage = images.find(img => img.id === selectedImageId);
+            const currentParams = getParametersFromForm();
+            
+            console.log('Sending request with:', {
+                message,
+                currentParams,
+                imageName: selectedImage?.name || '',
+                sequenceType: currentParams.sequence.pulseSequence
+            });
+
+            const response = await fetch(`${window.location.origin}/api/assistant/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    message,
+                    currentParams,
+                    imageName: selectedImage?.name || '',
+                    sequenceType: currentParams.sequence.pulseSequence
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Received response:', data);
+
+            if (data && data.response) {
+                addMessageToChat('assistant', data.response);
+                if (data.suggestedParams) {
+                    highlightSuggestedParameters(data.suggestedParams);
+                }
+            } else {
+                throw new Error('Invalid response format');
+            }
+        } catch (error) {
+            console.error('Chat error:', error);
+            addMessageToChat('assistant', 'Sorry, I encountered an error. Please try again.');
+        }
+    });
+}
+
+  async function loadNotifications() {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${window.location.origin}/api/lecturer/student/notifications`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const notes = await res.json();
+
+  const container = document.getElementById('notificationsList');
+  container.innerHTML = ''; // Clear previous
+
+  notes.forEach(note => {
+    const li = document.createElement('li');
+    li.className = 'notification-item';
+    li.innerHTML = `
+      <p class="text-sm"><strong>${note.lecturerId.name}</strong>: ${note.comment} (${note.mark})</p>
+      <p class="text-xs text-gray-500 mt-1">${new Date(note.createdAt).toLocaleString()}</p>
+    `;
+    container.appendChild(li);
+  });
+
+const badge = document.getElementById('notificationBadge');
+  badge.textContent = notes.length;
+  badge.style.display = notes.length > 0 ? 'flex' : 'none';
+  }
+
+
+ function validateParameters(parameters) {
+    const errors = [];
+    const { fov, matrixSize, sliceThickness, sliceGap, planeOrientation, foldoverDirection } = parameters.geometry;
+    const { tr, te, flipAngle, pulseSequence } = parameters.sequence;
+
+    // Convert matrixSize to numeric (assumes square matrix like 256x256)
+    const matrixValue = parseInt(matrixSize.split("×")[0]);
+    const pixelSize = fov / matrixValue;
+
+    // --- Geometry Rules ---
+    if (fov < 100 || fov > 500) errors.push("FOV must be between 100 and 500 mm");
+    if (fov < 2 * sliceThickness) errors.push("FOV should be at least twice the slice thickness");
+    if (pixelSize < 0.5 && matrixValue >= 512) errors.push("Pixel size too small for selected matrix size");
+    if (sliceThickness < 0.5 || sliceThickness > 10) errors.push("Slice thickness must be between 0.5 and 10 mm");
+    if (sliceThickness > fov / 10) errors.push("Slice thickness must be ≤ FOV / 10");
+    if (sliceGap < 0 || sliceGap > 5) errors.push("Slice gap must be between 0 and 5 mm");
+    if (sliceGap >= sliceThickness) errors.push("Slice gap must be less than slice thickness");
+
+    if (fov < 150 && foldoverDirection !== "") {
+      errors.push("Small FOV in fold-over direction may cause wrap-around artifacts");
+    }
+
+    // --- Sequence Rules ---
+    if (tr < 300 || tr > 3000) errors.push("TR must be between 300 and 3000 ms");
+    if (te < 10 || te > 150) errors.push("TE must be between 10 and 150 ms");
+    if (flipAngle < 0 || flipAngle > 180) errors.push("Flip angle must be between 0° and 180°");
+
+    if (pulseSequence === "T1-Weighted") {
+      if (tr < 300 || tr > 800) errors.push("Recommended TR for T1 is 300–800 ms");
+      if (te < 10 || te > 30) errors.push("Recommended TE for T1 is 10–30 ms");
+      if (flipAngle !== 90) errors.push("Recommended flip angle for T1 is 90°");
+    }
+    else if (pulseSequence === "T2-Weighted") {
+      if (tr < 1500 || tr > 3000) errors.push("Recommended TR for T2 is 1500–3000 ms");
+      if (te < 70 || te > 150) errors.push("Recommended TE for T2 is 70–150 ms");
+    }
+    else if (pulseSequence === "FLAIR") {
+      if (tr < 2000) errors.push("Recommended TR for FLAIR is > 2000 ms");
+      if (te < 80) errors.push("Recommended TE for FLAIR is > 80 ms");
+    }
+    else if (pulseSequence === "DWI") {
+      if (tr < 3000) errors.push("Recommended TR for DWI is ~3000 ms");
+      if (te < 70) errors.push("Recommended TE for DWI is > 70 ms");
+    }
+    else if (pulseSequence === "GRE") {
+      if (tr !== 1000 || te !== 25 || flipAngle !== 30) {
+        errors.push("Recommended for GRE: TR = 1000 ms, TE = 25 ms, Flip Angle = 30°");
+      }
+    }
+
+    return errors;
+  }
+
+applyChangesBtn.addEventListener('click', async () => {
+  const selected = images.find(img => img.id === selectedImageId);
+  if (!selected) {
+    showToast("Please select an image.", "warning");
+    return;
+  }
+
+  const params = getParametersFromForm();
+  const validationErrors = validateParameters(params);
+
+  if (validationErrors.length > 0) {
+    showToast("Validation Errors: " + validationErrors.join(". "), "error");
+    return;
+  }
+
+  const overlayData = getOverlayDataForImage(selectedImageId);
+  selected.parameters = params;
+  selected.overlay = overlayData; 
+
+  await saveParameters(); 
+  await loadSavedParameters();
+  
+  // Update the displayed parameters in the image card immediately
+  const imageCard = document.getElementById(selectedImageId).parentElement;
+  const infoContainer = imageCard.querySelector('.image-info');
+  if (infoContainer) {
+    infoContainer.innerHTML = `
+      <div class="flex justify-between">
+        <span>FOV: ${params.geometry.fov}mm</span>
+        <span>Matrix: ${params.geometry.matrixSize}</span>
+      </div>
+      <div class="flex justify-between mt-1">
+        <span>TR: ${params.sequence.tr}ms</span>
+        <span>TE: ${params.sequence.te}ms</span>
+      </div>
+    `;
+  }
+  
+  // Update canvas overlay if needed
+  const canvasEl = document.querySelector(`[data-image-id="${selectedImageId}"]`);
+  if (canvasEl?._fabric) {
+    const canvas = canvasEl._fabric;
+    const rect = canvas.getObjects('rect')[0];
+    if (rect && overlayData) {
+      rect.set({
+        left: overlayData.left,
+        top: overlayData.top,
+        width: overlayData.width,
+        height: overlayData.height,
+        angle: overlayData.angle
+      });
+      canvas.renderAll();
+    }
+  }
+ 
+  showToast("Parameters applied successfully!", "success");
+});
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadNotifications();          
+    await loadSavedParameters();       
+    renderImages();                     
+    renderSequenceList();               
+    setupEventListeners();  // This will now initialize the chatbot           
+});
+function initChatbot() {
+    const chatbot = document.getElementById('chatbot');
+    const openChatbot = document.getElementById('openChatbot');
+    const minimizeChatbot = document.getElementById('minimizeChatbot');
+    const assistantBtn = document.getElementById('assistantBtn');
+    const chatMessages = document.getElementById('chatMessages');
+
+    // Initially hide the chatbot
+    chatbot.classList.add('hidden');
+    openChatbot.classList.add('hidden');
+
+    // Show chatbot when assistant button is clicked
+    assistantBtn.addEventListener('click', () => {
+        console.log('Assistant button clicked'); // Debug
+        chatbot.classList.remove('hidden');
+        
+        // Add welcome message if chat is empty
+        if (!chatMessages.children.length) {
+            addMessageToChat('assistant', 
+                'Hello! I can help you with:\n' +
+                'Parameter recommendations\n' +
+                'Slice positioning advice\n' +
+                'Artifact prevention\n' +
+                'Parameter validation\n\n' +
+                'What would you like to know?'
+            );
+        }
+    });
+
+    // Minimize chatbot
+    minimizeChatbot.addEventListener('click', () => {
+        chatbot.classList.add('hidden');
+        openChatbot.classList.remove('hidden');
+    });
+
+    // Show chatbot when minimized button is clicked
+    openChatbot.addEventListener('click', () => {
+        chatbot.classList.remove('hidden');
+        openChatbot.classList.add('hidden');
+    });
+}
+// Add this helper function for adding messages to chat
+function addMessageToChat(sender, message) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageEl = document.createElement('div');
+    messageEl.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`;
+    
+    // Format bullet points and line breaks
+    let formattedMessage = message
+        .split('\n')
+        .map(line => {
+            if (line.startsWith('•')) {
+                return `<span class="chat-bullet">${line}</span>`;
+            }
+            return line;
+        })
+        .join('<br>');
+
+    // Style the message container
+    messageEl.innerHTML = `
+        <div class="${sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100'} 
+             rounded-lg px-4 py-2 max-w-[85%]">
+            <div class="text-[15px] leading-relaxed">
+                ${formattedMessage}
+            </div>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageEl);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Add this helper function for highlighting suggested parameters
+function highlightSuggestedParameters(suggestedParams) {
+    for (const [key, value] of Object.entries(suggestedParams)) {
+        const input = document.getElementById(key);
+        if (input) {
+            input.classList.add('ring-2', 'ring-yellow-400');
+            input.title = `Suggested value: ${value}`;
+            
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+                input.classList.remove('ring-2', 'ring-yellow-400');
+            }, 3000);
+        }
+    }
+}
+
+// Toast notification system to replace alerts
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  
+  let icon = '';
+  switch (type) {
+    case 'success':
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+      break;
+    case 'error':
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+      break;
+    case 'warning':
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+      break;
+    default:
+      icon = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+  }
+  
+  toast.innerHTML = `
+    <div class="toast-icon">${icon}</div>
+    <div class="toast-message">${message}</div>
+    <div class="toast-progress">
+      <div class="toast-progress-bar"></div>
+    </div>
+  `;
+  
+  container.appendChild(toast);
+  
+  // Animate progress bar
+  const progressBar = toast.querySelector('.toast-progress-bar');
+  progressBar.style.transition = `width ${duration}ms linear`;
+  
+  // Force a reflow so the initial state is applied before we change it
+  void toast.offsetWidth;
+  
+  // Add show class to trigger animation
+  toast.classList.add('show');
+  
+  // Animate progress bar to 0 width
+  setTimeout(() => {
+    progressBar.style.width = '0%';
+  }, 10);
+  
+  // Remove toast after duration
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      container.removeChild(toast);
+    }, 300);
+  }, 5000);
+}
+
+function showSuccessModal(message = "Parameters applied successfully!") {
+  const modal = document.getElementById('successModal');
+  const msgBox = document.getElementById('successModalMessage');
+  msgBox.textContent = message;
+  modal.classList.remove('hidden');
+}
+
+function closeSuccessModal() {
+  document.getElementById('successModal').classList.add('hidden');
+}
+  </script>
+  <!-- Success Modal -->
+<div id="successModal" class="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 hidden">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
+    <h2 class="text-lg font-semibold text-gray-800 mb-2">MRI Simulator</h2>
+    <p class="text-gray-700 mb-4" id="successModalMessage">Parameters applied successfully!</p>
+    <button onclick="closeSuccessModal()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring">OK</button>
+  </div>
+</div>
+<script>
+  const base = window.location.origin;
+
+  // Elements and their attributes to adjust
+  const elementsToFix = [
+    { selector: 'a', attr: 'href' },
+    { selector: 'img', attr: 'src' },
+    { selector: 'video', attr: 'src' },
+    { selector: 'source', attr: 'src' },
+    { selector: 'script', attr: 'src' },
+    { selector: 'link', attr: 'href' }
+  ];
+
+  elementsToFix.forEach(({ selector, attr }) => {
+    document.querySelectorAll(selector).forEach(el => {
+      const val = el.getAttribute(attr);
+      if (val && !val.startsWith('http') && !val.startsWith('mailto') && !val.startsWith('#') && !val.startsWith('data:')) {
+        el.setAttribute(attr, `${base}/${val.replace(/^\/+/, '')}`);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

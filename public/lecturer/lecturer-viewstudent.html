@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Student Simulation</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f3f4f6;
+      min-height: 100vh;
+    }
+    
+    .image-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border: 2px solid #e5e7eb;
+      border-radius: 6px;
+      margin: 15px;
+      display: inline-block;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .medical-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    .image-container:hover .medical-image {
+      transform: scale(1.03);
+    }
+
+    .overlay-rectangle {
+      position: absolute;
+      border: 3px solid rgba(37, 99, 235, 0.8);
+      background-color: trans;
+      pointer-events: none;
+      z-index: 15;
+      box-sizing: border-box;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+    }
+
+    .image-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: rgba(31, 41, 55, 0.9);
+      color: white;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      border-bottom-right-radius: 6px;
+      z-index: 15;
+    }
+
+    .image-info {
+      padding: 12px;
+      background: #f9fafb;
+      font-size: 13px;
+      border-top: 1px solid #e5e7eb;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    
+    .image-info strong {
+      color: #1f2937;
+    }
+    
+    .feedback-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+    }
+    
+    .feedback-container:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .btn-back {
+      transition: all 0.2s ease;
+    }
+    
+    .btn-back:hover {
+      transform: translateX(-2px);
+    }
+    
+    .btn-submit {
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-submit:hover {
+      transform: translateY(-1px);
+    }
+    
+    .btn-submit:active {
+      transform: translateY(1px);
+    }
+    
+    .sticky-feedback {
+      position: sticky;
+      top: 20px;
+    }
+    
+    @media (max-width: 1023px) {
+      .sticky-feedback {
+        position: relative;
+        top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen p-4 md:p-8">
+    <!-- Header with navigation -->
+    <header class="max-w-7xl mx-auto mb-6">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Student Simulation Assessment</h1>
+          <p class="text-gray-600">Review student's MRI simulation parameters and provide feedback</p>
+        </div>
+        
+        <button onclick="window.history.back()" class="btn-back mt-4 md:mt-0 flex items-center bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-md shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Dashboard
+        </button>
+      </div>
+      
+      <div class="h-1 w-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full"></div>
+    </header>
+    
+    <main class="max-w-7xl mx-auto">
+      <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Left side: Student's MRI Simulation Configurations -->
+        <div class="lg:w-2/3">
+          <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Student's MRI Simulation Configurations
+              </h2>
+              <div id="studentInfo" class="text-sm text-gray-600 mt-2 md:mt-0">
+                <!-- Student info will be inserted here -->
+              </div>
+            </div>
+            
+            <div class="border-t border-gray-100 pt-4">
+              <div id="imageViewer" class="flex flex-wrap justify-center md:justify-start">
+                <!-- Images will be inserted here -->
+                <div class="flex items-center justify-center w-full py-10 text-gray-400">
+                  <svg class="animate-spin h-8 w-8 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading student data...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right side: Feedback Section -->
+        <div class="lg:w-1/3">
+          <div class="feedback-container p-6 mb-8 sticky-feedback">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+              Provide Assessment & Feedback
+            </h3>
+            
+            <div class="mb-4">
+              <label for="comment" class="block text-sm font-medium text-gray-700 mb-1">Feedback Comments</label>
+              <textarea 
+                id="comment" 
+                class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" 
+                rows="6" 
+                placeholder="Provide detailed feedback on student's simulation parameters and choices..."
+              ></textarea>
+            </div>
+            
+            <div class="mb-6">
+              <label for="mark" class="block text-sm font-medium text-gray-700 mb-1">Assessment Score</label>
+              <div class="relative flex items-center">
+                <input 
+                  type="number" 
+                  id="mark" 
+                  min="0" 
+                  max="100"
+                  class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors" 
+                  placeholder="0-100"
+                >
+                <div class="absolute right-4 text-gray-500">/ 100</div>
+              </div>
+            </div>
+            
+            <button 
+              id="sendFeedback" 
+              class="btn-submit w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium flex items-center justify-center shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+              Submit Assessment & Feedback
+            </button>
+            
+            <div id="feedbackStatus" class="text-center hidden mt-4"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const studentId = urlParams.get('userId');
+    const token = localStorage.getItem('lecturerToken');
+    
+    async function fetchStudentInfo() {
+      try {
+        const res = await fetch(`${window.location.origin}/api/lecturer/student/${studentId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        return await res.json();
+      } catch (error) {
+        console.error('Error fetching student info:', error);
+        return null;
+      }
+    }
+
+    async function fetchStudentImages() {
+      try {
+        const res = await fetch(`${window.location.origin}/api/parameters/student/${studentId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        return await res.json();
+      } catch (error) {
+        console.error('Error fetching student data:', error);
+        return [];
+      }
+    }
+
+    function createSimpleOverlay(container, overlayData) {
+      // Remove any existing overlay first
+      const existingOverlay = container.querySelector('.overlay-rectangle');
+      if (existingOverlay) {
+        existingOverlay.remove();
+      }
+
+      // Get the actual image element
+      const img = container.querySelector('.medical-image');
+      if (!img) {
+        console.error('No image found in container');
+        return;
+      }
+
+      console.log('Creating overlay with data:', overlayData);
+
+      if (!overlayData) {
+        // Create default overlay in the center
+        const defaultOverlay = document.createElement('div');
+        defaultOverlay.className = 'overlay-rectangle';
+        defaultOverlay.style.left = '75px';
+        defaultOverlay.style.top = '75px';
+        defaultOverlay.style.width = '150px';
+        defaultOverlay.style.height = '150px';
+        container.appendChild(defaultOverlay);
+        console.log('Created default overlay');
+        return;
+      }
+
+      // Create overlay from data
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay-rectangle';
+
+      // Check if this is percentage format (from student portal)
+      if (overlayData.leftPercent !== undefined) {
+        console.log('Converting percentage overlay data to absolute positioning');
+
+        // Get container dimensions (300x300 in our case)
+        const containerWidth = 300;
+        const containerHeight = 300;
+
+        // Get image natural dimensions
+        const imgNaturalWidth = img.naturalWidth || 256;
+        const imgNaturalHeight = img.naturalHeight || 256;
+
+        // Calculate how the image is displayed within the container (object-fit: cover)
+        const containerAspect = containerWidth / containerHeight;
+        const imageAspect = imgNaturalWidth / imgNaturalHeight;
+
+        let displayedWidth, displayedHeight, offsetX, offsetY;
+
+        if (imageAspect > containerAspect) {
+          // Image is wider - fits to container height
+          displayedWidth = containerWidth;
+          displayedHeight = containerWidth / imageAspect;
+          offsetX = 0;
+          offsetY = (containerHeight - displayedHeight) / 2;
+        } else {
+          // Image is taller - fits to container width
+          displayedWidth = containerHeight * imageAspect;
+          displayedHeight = containerHeight;
+          offsetX = (containerWidth - displayedWidth) / 2;
+          offsetY = 0;
+        }
+
+        // Convert percentage coordinates to absolute pixels
+        const left = offsetX + (overlayData.leftPercent / 100) * displayedWidth;
+        const top = offsetY + (overlayData.topPercent / 100) * displayedHeight;
+        const width = (overlayData.widthPercent / 100) * displayedWidth;
+        const height = (overlayData.heightPercent / 100) * displayedHeight;
+
+        overlay.style.left = Math.round(left) + 'px';
+        overlay.style.top = Math.round(top) + 'px';
+        overlay.style.width = Math.round(width) + 'px';
+        overlay.style.height = Math.round(height) + 'px';
+      } else {
+        // Use absolute values directly
+        overlay.style.left = (overlayData.left || 75) + 'px';
+        overlay.style.top = (overlayData.top || 75) + 'px';
+        overlay.style.width = (overlayData.width || 150) + 'px';
+        overlay.style.height = (overlayData.height || 150) + 'px';
+      }
+
+      if (overlayData.angle) {
+        overlay.style.transform = `rotate(${overlayData.angle}deg)`;
+        overlay.style.transformOrigin = 'center';
+      }
+
+      // Ensure proper positioning
+      overlay.style.position = 'absolute';
+      overlay.style.zIndex = '15';
+
+      container.appendChild(overlay);
+    }
+
+    // Update the createImageCard function to prevent duplicate cards:
+    function createImageCard(data) {
+      // Check if card already exists for this image
+      const existingCard = document.querySelector(`[data-image-id="${data.imageId}"]`);
+      if (existingCard) {
+          return null; // Skip if card already exists
+      }
+
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg';
+      card.setAttribute('data-image-id', data.imageId); // Add identifier
+
+      const imageContainer = document.createElement('div');
+      imageContainer.className = 'image-container';
+
+      // Image label
+      const label = document.createElement('div');
+      label.className = 'image-label';
+      label.textContent = data.imageName;
+
+      // Medical image
+      const img = document.createElement('img');
+      img.className = 'medical-image';
+      img.src = `${window.location.origin}/cardic/${data.imageName.replace(/ /g, '_')}_thumb.jpg`;
+      img.alt = data.imageName;
+      img.onerror = () => {
+        img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZWVlIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjOTk5Ij5JbWFnZSBOb3QgRm91bmQ8L3RleHQ+PC9zdmc+';
+      };
+
+      // Add elements to container
+      imageContainer.appendChild(img);
+      imageContainer.appendChild(label);
+
+      // Create overlay after image loads
+      img.onload = () => {
+        setTimeout(() => createSimpleOverlay(imageContainer, data.overlay), 100);
+      };
+
+      if (img.complete) {
+        setTimeout(() => createSimpleOverlay(imageContainer, data.overlay), 100);
+      }
+
+      // Image info
+      const geom = data.parameters.geometry;
+      const seq = data.parameters.sequence;
+
+      const info = document.createElement('div');
+      info.className = 'image-info';
+      info.innerHTML = `
+        <div><strong>FOV:</strong> ${geom.fov}mm | <strong>Matrix:</strong> ${geom.matrixSize}</div>
+        <div><strong>TR:</strong> ${seq.tr}ms | <strong>TE:</strong> ${seq.te}ms</div>
+        <div><strong>Flip Angle:</strong> ${seq.flipAngle}° | <strong>Pulse Sequence:</strong> ${seq.pulseSequence}</div>
+        <div><strong>Slice Thickness:</strong> ${geom.sliceThickness}mm | <strong>Slice Gap:</strong> ${geom.sliceGap}mm</div>
+        <div><strong>Orientation:</strong> ${geom.planeOrientation} | <strong>Foldover:</strong> ${geom.foldoverDirection}</div>
+      `;
+
+      card.appendChild(imageContainer);
+      card.appendChild(info);
+
+      return card;
+    }
+
+    // Update the init function:
+    async function init() {
+      try {
+        // Fetch and display student info
+        const studentInfo = await fetchStudentInfo();
+        if (studentInfo) {
+          document.getElementById('studentInfo').textContent = `Student: ${studentInfo.name} (${studentInfo.email})`;
+        }
+        
+        // Clear viewer before adding new cards
+        const viewer = document.getElementById('imageViewer');
+        viewer.innerHTML = '';
+
+        // Fetch and display student images
+        const data = await fetchStudentImages();
+        if (!data || data.length === 0) {
+          viewer.innerHTML = '<div class="w-full text-center py-12 text-gray-500">No simulation data found for this student</div>';
+          return;
+        }
+
+        // Create cards only once for each unique image
+        const processedImages = new Set();
+        data.forEach((imageData) => {
+          if (!processedImages.has(imageData.imageId)) {
+            const card = createImageCard(imageData);
+            if (card) {
+              viewer.appendChild(card);
+              processedImages.add(imageData.imageId);
+            }
+          }
+        });
+
+      } catch (error) {
+        console.error('Error in initialization:', error);
+        document.getElementById('imageViewer').innerHTML =
+          '<div class="w-full text-center py-12 text-red-500">Error loading student data</div>';
+      }
+    }
+
+    // Feedback submission with visual feedback
+    document.getElementById('sendFeedback').addEventListener('click', async () => {
+      const comment = document.getElementById('comment').value;
+      const mark = document.getElementById('mark').value;
+      const feedbackStatus = document.getElementById('feedbackStatus');
+      const submitButton = document.getElementById('sendFeedback');
+
+      if (!comment.trim()) {
+        showFeedbackStatus('Please enter feedback comments', 'error');
+        return;
+      }
+
+      if (!mark || isNaN(mark) || mark < 0 || mark > 100) {
+        showFeedbackStatus('Please enter a valid score between 0 and 100', 'error');
+        return;
+      }
+
+      try {
+        // Show loading state
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Submitting...';
+        
+        const res = await fetch(`${window.location.origin}/api/lecturer/comment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            studentId,
+            comment: comment.trim(),
+            mark: Number(mark)
+          })
+        });
+
+        if (res.ok) {
+          showFeedbackStatus('Feedback submitted successfully!', 'success');
+          document.getElementById('comment').value = '';
+          document.getElementById('mark').value = '';
+        } else {
+          const data = await res.json();
+          showFeedbackStatus(`Failed to send feedback: ${data.message || 'Server error'}`, 'error');
+        }
+      } catch (error) {
+        console.error('Error sending feedback:', error);
+        showFeedbackStatus('Network error while sending feedback', 'error');
+      } finally {
+        // Reset button
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>Submit Assessment & Feedback';
+      }
+    });
+
+    function showFeedbackStatus(message, type) {
+      const feedbackStatus = document.getElementById('feedbackStatus');
+      feedbackStatus.textContent = message;
+      feedbackStatus.className = 'text-center py-3 my-4 rounded-md';
+      
+      if (type === 'success') {
+        feedbackStatus.classList.add('bg-green-100', 'text-green-800');
+      } else {
+        feedbackStatus.classList.add('bg-red-100', 'text-red-800');
+      }
+      
+      feedbackStatus.classList.remove('hidden');
+      
+      // Hide after 5 seconds
+      setTimeout(() => {
+        feedbackStatus.classList.add('hidden');
+      }, 5000);
+    }
+
+    // Start when page loads
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+  <script>
+  const base = window.location.origin;
+
+  // Elements and their attributes to adjust
+  const elementsToFix = [
+    { selector: 'a', attr: 'href' },
+    { selector: 'img', attr: 'src' },
+    { selector: 'video', attr: 'src' },
+    { selector: 'source', attr: 'src' },
+    { selector: 'script', attr: 'src' },
+    { selector: 'link', attr: 'href' }
+  ];
+
+  elementsToFix.forEach(({ selector, attr }) => {
+    document.querySelectorAll(selector).forEach(el => {
+      const val = el.getAttribute(attr);
+      if (val && !val.startsWith('http') && !val.startsWith('mailto') && !val.startsWith('#') && !val.startsWith('data:')) {
+        el.setAttribute(attr, `${base}/${val.replace(/^\/+/, '')}`);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
