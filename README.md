@@ -134,5 +134,3 @@ public/
 ## 🧪 Testing Accounts
 
 > You can insert mock data or use MongoDB GUI to seed users for testing.
-
----
